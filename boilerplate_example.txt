@@ -1,0 +1,12 @@
+class f1Input:
+    ...
+
+class f1Arguments:
+    ...
+
+class f1Output:
+    ...
+
+def f1(input_data: f1Input, input_arguments: f1Arguments) -> f1Output:
+    pass
+
