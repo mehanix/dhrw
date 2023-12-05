@@ -48,6 +48,7 @@ async def main_tester():
                         
                         msg = json.loads(message.body)
                         print("received ", msg, "from ", read_from)
+                        print(read_from, function_name, function_code)
                         # Do a lot of stuff with the received message..
                         # When the 'processing' of the received process is done, a new message is created which needs
                         # to be published to another queue.
@@ -55,8 +56,8 @@ async def main_tester():
                         # check for collision with locals
 
                         # separate into process to prevent crashing + queue/multiprocessing
-                       
-                        new_message = locals()[function_name]()
+                        print(function_name in locals())
+                        new_message = locals()[function_name](msg)
                         # use pydantic pt datatype enforcing!
                         await publish(new_message, function_name)
                         await message.ack()
@@ -86,8 +87,16 @@ async def main_tester():
                             print("Node busy, rejecting...")
                             await message.reject(requeue=True)
                         else:
-                            work = loop.create_task(consume_work(msg['from'], msg['name'], msg['code']))
-                            tasks.append(work)
+                            # TODO cleanup:
+                            # nicer branching logic
+                            # unique start/end topics per comp graph?
+                            if len(msg['parents']) == 0:                                
+                                work = loop.create_task(consume_work('start', msg['name'], msg['code']))
+                                tasks.append(work)
+                            else:
+                                for parent in msg['parents']:
+                                    work = loop.create_task(consume_work(parent['name'], msg['name'], msg['code']))
+                                    tasks.append(work)                         
                             # await publish(new_message, PUBLISH_QUEUE)
                             await message.ack()
 
