@@ -7,16 +7,18 @@ import docker
 
 from dotenv import load_dotenv
 
-import rabbit, gitlab
+import gitlab
 
-from . import models, schemas
+from . import models, schemas, rmq
+import json
+import aio_pika
 
 load_dotenv()
 
 client = docker.from_env()
 
 def create_graph(db: Session):
-    db_graph = models.Graph()
+    db_graph = models.Graph(name="New Computation Graph")
     db.add(db_graph)
     db.commit()
     db.refresh(db_graph)
@@ -26,6 +28,10 @@ def get_graph(db: Session, id: str):
     graph = db.query(models.Graph).filter(models.Graph.id == id).first()
     graph.nodes
 
+    return graph
+
+def get_graphs(db: Session):
+    graph = db.query(models.Graph).all()
     return graph
 
 def create_node(db: Session, node: schemas.GraphNodeCreate):
@@ -87,6 +93,7 @@ def disconnect_nodes(db: Session, from_id: int, to_id: int):
 
 def create_machine(db: Session):
     machine = client.containers.run("worker", detach=True, network="mp-nicoleta-datahive_datahive_net")
+
     db_machine = models.Machine(id=machine.id, status=machine.status)
     db.add(db_machine)
     db.commit()
@@ -106,17 +113,19 @@ def remove_machine(db: Session, machine_id: str, background_tasks: BackgroundTas
         "status":f"Initiated shutdown for {machine_id}"
     }
 
-def bind_machine(db: Session, machine_id: str, node_id: int):
-    db_machine = db.query(models.Machine).filter(models.Machine.id == machine_id).first()
+async def bind_machine(db: Session, node_id: int):
+    # db_machine = db.query(models.Machine).filter(models.Machine.id == machine_id).first()
     db_node = db.query(models.GraphNode).filter(models.GraphNode.id == node_id).first()
 
-
-    rabbit.send_task(routing_key="task.up", body=db_node)
-    db_machine.runs_node.append(db_node.id)
-    db.add(db_machine)
-    db.commit()
-    db.refresh(db_machine)
-    return db_machine
+    db_node.parents
+    db_node.children
+    task = await rmq.send_task(routing_key="task.up", body=db_node)
+    return {"done":"todo return machine id & create new ones if needed"}
+    # db_machine.runs_node = db_node
+    # db.add(db_machine)
+    # db.commit()
+    # db.refresh(db_machine)
+    # return db_machine
 
 def create_function(db: Session, func:schemas.FunctionCreate):
     db_function = models.Function(gitlab_link = func.gitlab_link)

@@ -11,6 +11,7 @@ class GraphBase(BaseModel):
     pass
 
 class GraphCreate(GraphBase):
+    name: str = "New Computation Graph"
     pass
 
 class Graph(GraphBase):

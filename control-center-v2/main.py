@@ -1,6 +1,8 @@
 from typing import Union
 
 from fastapi import Depends, FastAPI, BackgroundTasks
+from fastapi.middleware.cors import CORSMiddleware
+
 from sqlalchemy.orm import Session
 
 from . import crud, models, schemas
@@ -9,6 +11,19 @@ from .database import SessionLocal, engine
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
+origins = [
+    "http://localhost:3000"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 def get_db():
     db = SessionLocal()
@@ -25,6 +40,10 @@ def read_root():
 @app.get("/graph/create")
 async def create_computation_graph(db: Session = Depends(get_db)):
     return crud.create_graph(db)
+
+@app.get("/graphs")
+async def get_computation_graphs(db: Session = Depends(get_db)):
+    return crud.get_graphs(db)
 
 @app.get("/graph/{graph_id}")
 async def get_computation_graph(graph_id: int, db: Session = Depends(get_db)):
@@ -67,9 +86,10 @@ async def up_machine(db: Session = Depends(get_db)):
 async def down_machine(machine_id: str, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     return crud.remove_machine(db, machine_id, background_tasks)
    
-@app.put("/machine/{machine_id}/bind/{node_id}")
-async def bind_machine(machine_id: str, node_id: int, db: Session = Depends(get_db)):
-    return crud.bind_machine(machine_id=machine_id, node_id=node_id, db=db)
+@app.put("/machine/bind/{node_id}")
+async def bind_machine(node_id: int, db: Session = Depends(get_db)):
+    res = await crud.bind_machine(node_id=node_id, db=db)
+    return res
 
 @app.put("/graph/{graph_id}/up")
 async def up_computation_graph(graph_id: int):

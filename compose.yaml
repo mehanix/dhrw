@@ -39,30 +39,43 @@ services:
      - 8000:8000
     networks:
       - datahive_net
+
+  frontend:
+    container_name: frontend
+    image: frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    volumes:
+      - ./frontend:/app
+    ports:
+      - 3000:3000
+    networks:
+      - datahive_net
     
-  # worker_1:
-  #   build:
-  #     context: ./worker
-  #     dockerfile: Dockerfile
-  #   restart: always
-  #   networks:
-  #     - datahive_net
+  worker_1:
+    build:
+      context: ./worker
+      dockerfile: Dockerfile
+    restart: always
+    networks:
+      - datahive_net
     
-  # worker_2:
-  #   build:
-  #     context: ./worker
-  #     dockerfile: Dockerfile
-  #   restart: always
-  #   networks:
-  #     - datahive_net
+  worker_2:
+    build:
+      context: ./worker
+      dockerfile: Dockerfile
+    restart: always
+    networks:
+      - datahive_net
   
-  # worker_3:
-  #   build:
-  #     context: ./worker
-  #     dockerfile: Dockerfile
-  #   restart: always
-  #   networks:
-  #     - datahive_net
+  worker_3:
+    build:
+      context: ./worker
+      dockerfile: Dockerfile
+    restart: always
+    networks:
+      - datahive_net
         
 networks:
   datahive_net:
