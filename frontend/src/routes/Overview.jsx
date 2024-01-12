@@ -1,4 +1,4 @@
-import { Divider, Heading, Stack, Box, Card, CardHeader, CardBody, LinkOverlay, CardFooter, Button, Text, Link } from '@chakra-ui/react'
+import { Divider, Heading, Stack, Box, Card, CardHeader, CardBody, LinkOverlay, CardFooter, Button, Text, Wrap } from '@chakra-ui/react'
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from 'react';
 
@@ -15,6 +15,9 @@ const GraphCard = (props) => {
     <LinkOverlay href={'/graph-editor/' + graphInfo.id}>
         <Button>Edit</Button>
         </LinkOverlay>
+        <LinkOverlay href={'/graph-editor/' + graphInfo.id}>
+        <Button>Delete</Button>
+        </LinkOverlay>
     </CardFooter>
 </Card>
 }
@@ -25,9 +28,9 @@ const GraphsList = (props) => {
     let graphCards = graphs.map((graph) => <GraphCard graphInfo={graph} />
     )
     return <>
-    <Stack direction={'row'} height="300px">
+    <Wrap>
         {graphCards}
-    </Stack>
+    </Wrap>
     </>
 }
 

@@ -8,6 +8,8 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 
+import NavBar from '../components/navbar.jsx';
+
 import Sidebar from '../components/FunctionDrawer.jsx';
 
 // import './index.css';
@@ -71,7 +73,9 @@ const DnDFlow = () => {
   );
 
   return (
-    <div className="dndflow">
+  <div className="main">
+  <NavBar />
+  <div className="dndflow">
       <ReactFlowProvider >
         <div className="reactflow-wrapper" ref={reactFlowWrapper}>
           <ReactFlow 
@@ -91,6 +95,8 @@ const DnDFlow = () => {
         <Sidebar />
       </ReactFlowProvider>
     </div>
+    </div>
+
   );
 };
 

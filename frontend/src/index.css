@@ -67,9 +67,14 @@ button:focus-visible {
   }
 } */
 
-.dndflow {
-  flex-direction: column;
+.main {
   display: flex;
+  flex-direction: column;
+}
+
+.dndflow {
+  display: flex;
+  flex-direction: row;
   flex-grow: 1;
   height: 100%;
 }

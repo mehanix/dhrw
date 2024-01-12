@@ -8,7 +8,6 @@ import {
 
 import { ChakraProvider, Box } from '@chakra-ui/react'
 import './index.css'
-import NavBar from './components/navbar.jsx';
 import customTheme from "./utils/themes";
 import Overview from './routes/Overview.jsx';
 import GraphEditor from './routes/GraphEditor.jsx';
@@ -30,8 +29,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode> 
     <Provider store={store}> 
     <ChakraProvider theme={customTheme}>
-      <NavBar />
-      <Box p={4}  h="93%"  display={"grid"}>
+      <Box h="100%"  display={"grid"}>
       <RouterProvider router={router} />
 
       </Box>
