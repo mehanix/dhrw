@@ -5,7 +5,9 @@ import logo from "../assets/logo-large.png";
 import { Avatar, AvatarBadge, AvatarGroup } from '@chakra-ui/react'
 import { PiGraph } from "react-icons/pi";
 import { TbMathFunction } from "react-icons/tb";
+import GraphCollection from './GraphCollection.jsx';
 
+import FunctionDrawer from "./function-drawer/FunctionDrawer"; 
 const NavBar = (props) => {
   const [isOpen, setIsOpen] = React.useState(false);
 
@@ -25,14 +27,9 @@ const NavBar = (props) => {
     <MenuItem icon={<AddIcon />} command='⌘T'>
       New Graph
     </MenuItem>
-    <MenuItem icon={<ExternalLinkIcon />} command='⌘N'>
-      Open Graph...
-    </MenuItem>
+    <GraphCollection />
     <MenuItem icon={<RepeatIcon />} command='⌘⇧N'>
       Save
-    </MenuItem>
-    <MenuItem icon={<EditIcon />} command='⌘O'>
-      Open File...
     </MenuItem>
   </MenuList>
 </Menu>
@@ -53,7 +50,7 @@ Functions
   </MenuItem>
   <MenuItem icon={<ExternalLinkIcon />} command='⌘N'>
     Open Function Repository...
-  </MenuItem>
+  </MenuItem> 
 </MenuList>
 </Menu>
 

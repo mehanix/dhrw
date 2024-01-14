@@ -9,8 +9,7 @@ import ReactFlow, {
 import 'reactflow/dist/style.css';
 
 import NavBar from '../components/navbar.jsx';
-
-import Sidebar from '../components/FunctionDrawer.jsx';
+import Sidebar from '../components/sidebar.jsx';
 
 // import './index.css';
 
@@ -92,8 +91,8 @@ const DnDFlow = () => {
             <Controls />
           </ReactFlow>
         </div>
-        <Sidebar />
       </ReactFlowProvider>
+      <Sidebar />
     </div>
     </div>
 

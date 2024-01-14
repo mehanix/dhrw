@@ -1,10 +1,11 @@
-import { Divider, Heading, Stack, Box, Card, CardHeader, CardBody, LinkOverlay, CardFooter, Button, Text, Wrap } from '@chakra-ui/react'
+import { Divider, Heading, Stack, Box, Card, CardHeader, CardBody, LinkOverlay, CardFooter, Button, Text, Wrap, IconButton } from '@chakra-ui/react'
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from 'react';
+import { DeleteIcon, EditIcon } from '@chakra-ui/icons';
 
 const GraphCard = (props) => {
     const graphInfo = props.graphInfo
- return  <Card key={graphInfo.id} width="200px">
+ return  <Card key={graphInfo.id} width="300px">
     <CardHeader>
         <Heading size='md'> {graphInfo.name} </Heading>
     </CardHeader>
@@ -12,12 +13,14 @@ const GraphCard = (props) => {
         <Text> Status: {graphInfo.status}</Text>
     </CardBody>
     <CardFooter>
+
+    <LinkOverlay  href={'/graph-editor/' + graphInfo.id} >
+        <IconButton mr="1" aria-label='Edit graph' icon={<EditIcon />} />        
+    </LinkOverlay>
+
     <LinkOverlay href={'/graph-editor/' + graphInfo.id}>
-        <Button>Edit</Button>
-        </LinkOverlay>
-        <LinkOverlay href={'/graph-editor/' + graphInfo.id}>
-        <Button>Delete</Button>
-        </LinkOverlay>
+        <IconButton aria-label='Delete graph' icon={<DeleteIcon />} />        
+    </LinkOverlay>
     </CardFooter>
 </Card>
 }
@@ -34,11 +37,10 @@ const GraphsList = (props) => {
     </>
 }
 
-export default function Overview() {
+export default function ManageGraphs() {
     const dispatch = useDispatch();
     const graphs = useSelector((state) => state.ComputationGraphs);
     
-    console.log("a", graphs, graphs == [])
     useEffect(() => {
         dispatch.ComputationGraphs.setComputationGraphs()
     }, []);
@@ -49,8 +51,6 @@ export default function Overview() {
     }
 
     return <Box>
-        <Heading p={2}>Your graphs</Heading>
-        <Divider />
         <Stack p={2} alignItems={'start'} justifyContent={"start"}>
         <GraphsList graphs={graphs}/>
 

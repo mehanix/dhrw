@@ -34,6 +34,11 @@ def get_graphs(db: Session):
     graph = db.query(models.Graph).all()
     return graph
 
+def get_functions(db: Session):
+    functions = db.query(models.Function).all()
+    return functions
+
+
 def create_node(db: Session, node: schemas.GraphNodeCreate):
 
     db_function = db.query(models.Function).filter(models.Function.id == node.function_id).first()
@@ -128,7 +133,7 @@ async def bind_machine(db: Session, node_id: int):
     # return db_machine
 
 def create_function(db: Session, func:schemas.FunctionCreate):
-    db_function = models.Function(gitlab_link = func.gitlab_link)
+    db_function = models.Function(gitlab_link = func.gitlab_link, name = func.name, description = func.description)
     db.add(db_function)
     db.commit()
     db.refresh(db_function)

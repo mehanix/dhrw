@@ -11,7 +11,7 @@ class GraphBase(BaseModel):
     pass
 
 class GraphCreate(GraphBase):
-    name: str = "New Computation Graph"
+    name: str = "Unnamed Graph"
     pass
 
 class Graph(GraphBase):
@@ -42,6 +42,8 @@ class GraphNode(GraphNodeBase):
 
 class Function(BaseModel):
     gitlab_link: str
+    name: str
+    description: str
 
     class Config:
         orm_mode = True

@@ -9,7 +9,7 @@ import {
 import { ChakraProvider, Box } from '@chakra-ui/react'
 import './index.css'
 import customTheme from "./utils/themes";
-import Overview from './routes/Overview.jsx';
+import Overview from './routes/ManageGraphs.jsx';
 import GraphEditor from './routes/GraphEditor.jsx';
 import { Provider } from 'react-redux'
 import store from './store.js'

@@ -57,6 +57,10 @@ async def create_computation_node(node: schemas.GraphNodeCreate, db: Session = D
 async def create_function(func: schemas.FunctionCreate, db: Session = Depends(get_db)):
     return crud.create_function(db, func)
 
+@app.get("/functions")
+async def get_functions(db: Session = Depends(get_db)):
+    return crud.get_functions(db)
+
 @app.delete("/function/{function_id}")
 async def remove_function(function_id: str, db: Session = Depends(get_db)):
     return crud.remove_function(db, function_id)

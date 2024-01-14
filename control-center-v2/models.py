@@ -38,6 +38,8 @@ node_to_node = Table(
 class Function(Base):
     __tablename__ = "function_repository"
     id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(100))
+    description: Mapped[str] = mapped_column(String(300))
     gitlab_link: Mapped[str] = mapped_column(String(300))
     
 class GraphNode(Base):
