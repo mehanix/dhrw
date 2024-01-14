@@ -9,11 +9,28 @@ import { TbMathFunction } from "react-icons/tb";
 import { Tooltip } from '@chakra-ui/react'
 import { ViewIcon, DeleteIcon, AddIcon, CloseIcon } from "@chakra-ui/icons";
 const FunctionCard = (props) => {
-  const onDragStart = (event, nodeType) => {
-    console.log(nodeType)
-    event.dataTransfer.setData('application/reactflow', {'label':props.function.name});
-    event.dataTransfer.effectAllowed = 'move';
-  };
+
+  const reactFlowWrapper = useRef(null);
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [reactFlowInstance, setReactFlowInstance] = useState(null);
+
+  const onConnect = useCallback(
+    (params) => setEdges((eds) => addEdge(params, eds)),
+    [],
+  );
+
+  const onDragOver = useCallback((event) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+  }, []);
+
+
+  // const onDragStart = (event, nodeType) => {
+  //   console.log(nodeType)
+  //   event.dataTransfer.setData('application/reactflow', {'label':props.function.name});
+  //   event.dataTransfer.effectAllowed = 'move';
+  // };
 
   const func = props.function
   return <Card m="2" onDragStart={(event) => onDragStart(event, func.name)} draggable>
