@@ -72,28 +72,28 @@ const DnDFlow = () => {
   );
 
   return (
-  <div className="main">
-  <NavBar />
-  <div className="dndflow">
-      <ReactFlowProvider >
-        <div className="reactflow-wrapper" ref={reactFlowWrapper}>
-          <ReactFlow 
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
-            onInit={setReactFlowInstance}
-            onDrop={onDrop}
-            onDragOver={onDragOver}
-            fitView
-          >
-            <Controls />
-          </ReactFlow>
-        </div>
-      </ReactFlowProvider>
-      <Sidebar />
-    </div>
+    <div className="main">
+      <NavBar />
+      <div className="dndflow">
+        <ReactFlowProvider >
+          <div className="reactflow-wrapper" ref={reactFlowWrapper}>
+            <ReactFlow
+              nodes={nodes}
+              edges={edges}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              onConnect={onConnect}
+              onInit={setReactFlowInstance}
+              onDrop={onDrop}
+              onDragOver={onDragOver}
+              fitView
+            >
+              <Controls />
+            </ReactFlow>
+          </div>
+        </ReactFlowProvider>
+        <Sidebar />
+      </div>
     </div>
 
   );

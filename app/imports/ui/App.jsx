@@ -7,9 +7,6 @@ import {
 } from "react-router-dom";
 
 import { useTracker } from 'meteor/react-meteor-data';
-import { TasksCollection } from '/imports/db/TasksCollection';
-import { Task } from './Task';
-import { TaskForm } from './TaskForm';
 import { LoginForm } from './LoginForm';
 import { ChakraProvider, Box } from '@chakra-ui/react'
 
@@ -24,18 +21,6 @@ const router = createBrowserRouter([
 ]);
 
 export const App = () => {
-  const tasks = useTracker(() => {
-    const handler = Meteor.subscribe('tasks');
-
-    if (!handler.ready()) {
-      return []
-    }
-
-    const tasks = TasksCollection.find({}
-    ).fetch();
-
-    return tasks
-  });
   const user = useTracker(() => Meteor.user());
 
   const submit = () => {
@@ -43,16 +28,16 @@ export const App = () => {
   }
   return (
     <ChakraProvider>
-      <Box h="100%" display={"grid"}> 
-        <RouterProvider router={router} />
+      <Box h="100%" display={"grid"}>
+        {user ? <RouterProvider router={router} /> : <LoginForm/>}
       </Box>
       {/* <div> */}
 
 
-        {/* <form onSubmit={submit} className="login-form">
+         <form onSubmit={submit} className="login-form">
           <button type="submit">Log out</button>
         </form>
-      </div> */}
+
     </ChakraProvider>
 
   );

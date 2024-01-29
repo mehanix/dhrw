@@ -2,6 +2,7 @@ import { Divider, Heading, Stack, Box, Card, CardHeader, CardBody, LinkOverlay, 
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from 'react';
 import { DeleteIcon, EditIcon } from '@chakra-ui/icons';
+import React from 'react';
 
 const GraphCard = (props) => {
     const graphInfo = props.graphInfo
@@ -38,11 +39,11 @@ const GraphsList = (props) => {
 }
 
 export default function ManageGraphs() {
-    const dispatch = useDispatch();
-    const graphs = useSelector((state) => state.ComputationGraphs);
+    // const dispatch = useDispatch();
+    const graphs =[];
     
     useEffect(() => {
-        dispatch.ComputationGraphs.setComputationGraphs()
+        // dispatch.ComputationGraphs.setComputationGraphs()
     }, []);
 
     if (graphs == 0) {
@@ -52,7 +53,7 @@ export default function ManageGraphs() {
 
     return <Box>
         <Stack p={2} alignItems={'start'} justifyContent={"start"}>
-        <GraphsList graphs={graphs}/>
+        {/*<GraphsList graphs={graphs}/>*/}
 
         </Stack>
         <Divider />

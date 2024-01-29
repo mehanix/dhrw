@@ -5,30 +5,15 @@ import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from 'react';
 import React from 'react';
 
+import { useTracker } from 'meteor/react-meteor-data';
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { TbMathFunction } from "react-icons/tb";
 import { Tooltip } from '@chakra-ui/react'
 import { ViewIcon, DeleteIcon, AddIcon, CloseIcon } from "@chakra-ui/icons";
-
+import AddFunctionModal from "./AddFunctionModal";
+import {FunctionsCollection} from "../../db/FunctionsCollection";
 const FunctionCard = (props) => {
-
-  // const reactFlowWrapper = useRef(null);
-  // const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  // const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-  // const [reactFlowInstance, setReactFlowInstance] = useState(null);
-
-  // const onConnect = useCallback(
-  //   (params) => setEdges((eds) => addEdge(params, eds)),
-  //   [],
-  // );
-
-  // const onDragOver = useCallback((event) => {
-  //   event.preventDefault();
-  //   event.dataTransfer.dropEffect = 'move';
-  // }, []);
-
-
   const onDragStart = (event, nodeType) => {
     console.log(nodeType)
     event.dataTransfer.setData('application/reactflow', {'label':props.function.name});
@@ -50,12 +35,13 @@ const FunctionCard = (props) => {
        <IconButton icon={<ViewIcon />} variant='solid' colorScheme='blue'/>
       </Tooltip>
       <Tooltip hasArrow label="Delete function" aria-label='A tooltip'>
-        <IconButton icon={<DeleteIcon />} variant='solid' colorScheme='red'/>
+        <IconButton  onClick={() => {
+            Meteor.call('functions.remove', func._id)
+        }}icon={<DeleteIcon />} variant='solid' colorScheme='red'/>
       </Tooltip>
     </ButtonGroup>
   </CardFooter>
 </Card>
-  return 
 }
 
 const FunctionsList = (props) => {
@@ -71,14 +57,21 @@ export default function App() {
   const { getButtonProps, getDisclosureProps, isOpen } = useDisclosure();
   const [hidden, setHidden] = useState(!isOpen);
 
+    const { functions, isLoading } = useTracker(() => {
+        const noDataAvailable = { functions: [] };
+        if (!Meteor.user()) {
+            return noDataAvailable;
+        }
+        const handler = Meteor.subscribe('functions');
 
-  // const dispatch = useDispatch();
-  // const functions = useSelector((state) => state.FunctionRepository);
+        if (!handler.ready()) {
+            return { ...noDataAvailable, isLoading: true };
+        }
 
-  const functions = []
-  useEffect(() => {
-    // dispatch.FunctionRepository.getFunctionRepository()
-  }, []);
+        const functions = FunctionsCollection.find({}).fetch();
+
+        return { functions };
+    });
 
   return (
     <div>
@@ -113,33 +106,14 @@ export default function App() {
 
         </HStack>
       <hr />
-        <FunctionsList functions={functions} />
+          {isLoading ? <div className="loading">loading...</div> : <FunctionsList functions={functions} />}
       <Box style={{ position: "absolute", bottom: "0", padding:"2"}}>
-        <IconButton variant="outline" icon={<Icon as={AddIcon}></Icon> }></IconButton>
+          <AddFunctionModal />
+
       </Box>
-      {/* <div className="dndnode input" onDragStart={(event) => onDragStart(event, 'input')} draggable>
-        Input Node
-      </div>
-      <div className="dndnode" onDragStart={(event) => onDragStart(event, 'default')} draggable>
-        Default Node
-      </div>
-      <div className="dndnode output" onDragStart={(event) => onDragStart(event, 'output')} draggable>
-        Output Node
-      </div> */}
       </motion.div>
     </div>
   );
 }
 
 
-// import React from 'react';
-// export default () => {
-//   const onDragStart = (event, nodeType) => {
-//     event.dataTransfer.setData('application/reactflow', nodeType);
-//     event.dataTransfer.effectAllowed = 'move';
-//   };
-
-//   return (
-
-//   );
-// // };
