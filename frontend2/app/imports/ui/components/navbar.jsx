@@ -26,7 +26,7 @@ const NavBar = (props) => {
   </MenuButton>
   <MenuList>
     <AddGraphModal setWorkingGraph={props.setWorkingGraph}/>
-    <GraphCollection setWorkingGraph={props.setWorkingGraph}/>
+    <GraphCollection/>
     <MenuItem icon={<RepeatIcon />}>
       Save
     </MenuItem>

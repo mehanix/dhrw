@@ -11,7 +11,8 @@ Meteor.methods({
             throw new Meteor.Error('Not authorized.');
         }
 
-        return GraphsCollection.insert(graphObject)
+        const id = GraphsCollection.insert(graphObject)
+        return id
     },
 
     'graphs.remove'(id) {
@@ -25,7 +26,6 @@ Meteor.methods({
     },
 
     'graph.updateNodes'({_id, nodes}) {
-        // GraphsCollection.rawCollection().drop();
         if (!this.userId) {
             throw new Meteor.Error('Not authorized.');
         }

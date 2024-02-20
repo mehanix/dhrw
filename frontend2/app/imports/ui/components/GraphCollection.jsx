@@ -3,7 +3,7 @@ import React, { useState, useRef, useCallback } from 'react';
 import {  MenuItem, useDisclosure, Button, Modal, ModalOverlay, ModalCloseButton, ModalContent, ModalHeader, ModalFooter, ModalBody } from "@chakra-ui/react";
 import { ExternalLinkIcon } from '@chakra-ui/icons'
 import Overview from "../routes/ManageGraphs";
-export default function GraphCollection({setWorkingGraph}) {
+export default function GraphCollection() {
 
     const { isOpen, onOpen, onClose } = useDisclosure()
   
@@ -18,7 +18,7 @@ export default function GraphCollection({setWorkingGraph}) {
             <ModalHeader>Your Computation Graphs</ModalHeader>
             <ModalCloseButton />
             <ModalBody>
-              <Overview setWorkingGraph={setWorkingGraph}/>
+              <Overview/>
             </ModalBody>
           </ModalContent>
         </Modal>

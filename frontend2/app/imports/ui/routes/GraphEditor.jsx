@@ -20,7 +20,8 @@ import 'reactflow/dist/style.css';
 import NavBar from '../components/navbar.jsx';
 import Sidebar from '../components/sidebar.jsx';
 import StartNode from "../graph-editor/StartNode";
-
+import { useContext } from 'react';
+import { GraphEditorContext } from '../graph-editor/GraphEditorContext';
 // import './index.css';
 import '../graph-editor/graph-node.css';
 import EndNode from "../graph-editor/EndNode";
@@ -32,23 +33,6 @@ import {
 } from "meteor/react-meteor-data";
 
 const nodeTypes = { startNode: StartNode, endNode: EndNode, functionNode: FunctionNode };
-
-const initialNodes = [
-  {
-    id: '1',
-    type: 'startNode',
-    data: { label: 'hi' },
-    position: { x: 20, y: 5 },
-
-  },
-    {
-        id: '2',
-        type: 'endNode',
-        data: { label: 'hi' },
-        position: { x: 500, y: 5 },
-
-    },
-];
 
 let id = 0;
 const getId = () => `dndnode_${id++}`;
@@ -204,38 +188,35 @@ const DnDFlow = () => {
 
 
 function Flow() {
-    const {nodes, edges, viewport} = useTracker(() => {
+    const [activeGraphId, setActiveGraphId] = useState(null)
 
-        const handler = Meteor.subscribe('graphById');
-        console.log("a")
+    const {metadata, nodes, edges, viewport} = useTracker(() => {
+
+        const handler = Meteor.subscribe('graphs');
         if (!handler.ready()) {
-            return {nodes:[],edges:[],viewport:[]}
+            return {metadata:null, nodes:[],edges:[],viewport:[]}
         }
-        console.log("b")
-        const loadedGraph = GraphsCollection.find({}).fetch()[0];
-        console.log(loadedGraph)
-        // console.log(Meteor.subscribe('graphs.graphById'));
-        // return GraphsCollection.find().fetch()[0]["data"]["nodes"]
-        return {nodes:loadedGraph.data.nodes, edges:loadedGraph.data.edges, viewport:loadedGraph.data.viewport}
-    })
+        const loadedGraph = GraphsCollection.find({_id:activeGraphId}).fetch()[0];
+
+        return {metadata:loadedGraph, nodes:loadedGraph.data.nodes, edges:loadedGraph.data.edges, viewport:loadedGraph.data.viewport}
+    }, [activeGraphId])
 
     const onNodesChange = useCallback(
         (changes) => {
-            Meteor.call("graph.updateNodes", {_id: "77Nrp9pQvv8gkm2xu", nodes:applyNodeChanges(changes, nodes)})
+            Meteor.call("graph.updateNodes", {_id: metadata._id, nodes:applyNodeChanges(changes, nodes)})
         }, [nodes]
     )
 
     const onEdgesChange = useCallback(
         (changes) => {
-            Meteor.call("graph.updateEdges", {_id: "77Nrp9pQvv8gkm2xu", edges:applyEdgeChanges(changes, edges)})
+            Meteor.call("graph.updateEdges", {_id: metadata._id, edges:applyEdgeChanges(changes, edges)})
         }, [edges]
     )
 
     const onConnect = useCallback(
         (connection) => {
-            Meteor.call("graph.updateEdges", {_id: "77Nrp9pQvv8gkm2xu", edges:addEdge(connection, edges)})
-        },
-        [edges]
+            Meteor.call("graph.updateEdges", {_id: metadata._id, edges:addEdge(connection, edges)})
+        }, [edges]
     );
         // (changes) => setNodes((nds) => applyNodeChanges(changes, nds)),
         // [setNodes]
@@ -246,13 +227,33 @@ function Flow() {
 
     // const [edges, setEdges] = useState([]);
 
-    return <ReactFlow nodes={nodes}
-                      edges={edges}
-                      nodeTypes={nodeTypes}
-                      onNodesChange={onNodesChange}
-                      onEdgesChange={onEdgesChange}
-                      onConnect={onConnect}
-                      fitView />;
+    return (
+        <div className="main">
+            <GraphEditorContext.Provider value={setActiveGraphId}>
+                <NavBar/>
+            </GraphEditorContext.Provider>
+            <div className="dndflow">
+                {activeGraphId === null ? <p className="reactflow-wrapper" >Load a graph to start working.</p>:
+                    <ReactFlowProvider >
+                        <div className="reactflow-wrapper" ref={null}>
+                            <ReactFlow nodes={nodes}
+                                       edges={edges}
+                                       nodeTypes={nodeTypes}
+                                       onNodesChange={onNodesChange}
+                                       onEdgesChange={onEdgesChange}
+                                       onConnect={onConnect}
+                                       fitView >;
+                                <Controls></Controls>
+                                <ControlPanel onSave={null}/>
+                            </ReactFlow>
+                        </div>
+                    </ReactFlowProvider>
+                }
+                <Sidebar />
+            </div>
+        </div>
+
+    );
 }
 
 
