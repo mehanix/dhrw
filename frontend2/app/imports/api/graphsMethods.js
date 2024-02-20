@@ -6,7 +6,6 @@ import {GraphsCollection} from "../db/GraphsCollection";
 Meteor.methods({
     'graphs.insert'(graphObject) {
         // GraphsCollection.rawCollection().drop();
-        console.log("gro", graphObject)
         if (!this.userId) {
             throw new Meteor.Error('Not authorized.');
         }

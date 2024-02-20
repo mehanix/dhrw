@@ -189,6 +189,48 @@ const DnDFlow = () => {
 
 function Flow() {
     const [activeGraphId, setActiveGraphId] = useState(null)
+    const [reactFlowInstance, setReactFlowInstance] = useState(null);
+
+    // drag n drop funcitonality
+
+    const onDragOver = useCallback((event) => {
+        event.preventDefault();
+        event.dataTransfer.dropEffect = 'move';
+    }, []);
+
+    const onDrop = useCallback(
+        (event) => {
+            event.preventDefault();
+
+            const nodeData = event.dataTransfer.getData('application/reactflow');
+
+            // check if the dropped element is valid
+            if (typeof nodeData === 'undefined' || !nodeData) {
+                return;
+            }
+            // reactFlowInstance.project was renamed to reactFlowInstance.screenToFlowPosition
+            // and you don't need to subtract the reactFlowBounds.left/top anymore
+            // details: https://reactflow.dev/whats-new/2023-11-10
+            const position = reactFlowInstance.screenToFlowPosition({
+                x: event.clientX,
+                y: event.clientY,
+            });
+            const newNode = {
+                id: getId(),
+                type:"functionNode",
+                position,
+                data: {nodeId: id, ...JSON.parse(nodeData)},
+            };
+
+            reactFlowInstance.addNodes([newNode])
+            // Meteor.call("graph.updateNodes", {_id: metadata._id, nodes:[...nodes, newNode]})
+        },
+        [reactFlowInstance],
+    );
+
+
+    // end drag n drop functionality
+
 
     const {metadata, nodes, edges, viewport} = useTracker(() => {
 
@@ -215,7 +257,7 @@ function Flow() {
 
     const onConnect = useCallback(
         (connection) => {
-            Meteor.call("graph.updateEdges", {_id: metadata._id, edges:addEdge(connection, edges)})
+            Meteor.call("graph.updateEdges", {_id: metadata._id, edges:addEdge({...connection, type:"straight"}, edges)})
         }, [edges]
     );
         // (changes) => setNodes((nds) => applyNodeChanges(changes, nds)),
@@ -238,10 +280,16 @@ function Flow() {
                         <div className="reactflow-wrapper" ref={null}>
                             <ReactFlow nodes={nodes}
                                        edges={edges}
+                                       onInit={setReactFlowInstance}
                                        nodeTypes={nodeTypes}
                                        onNodesChange={onNodesChange}
                                        onEdgesChange={onEdgesChange}
                                        onConnect={onConnect}
+                                       connectionLineType={ConnectionLineType.Straight}
+
+                                       //dnd
+                                        onDragOver={onDragOver}
+                                        onDrop={onDrop}
                                        fitView >;
                                 <Controls></Controls>
                                 <ControlPanel onSave={null}/>
