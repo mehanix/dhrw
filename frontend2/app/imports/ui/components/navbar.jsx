@@ -7,12 +7,12 @@ import { PiGraph } from "react-icons/pi";
 import { TbMathFunction } from "react-icons/tb";
 import GraphCollection from './GraphCollection.jsx';
 
-import FunctionDrawer from "./FunctionDrawer"; 
+import FunctionDrawer from "./FunctionDrawer";
+import AddGraphModal from "./AddGraphModal";
 const NavBar = (props) => {
   const [isOpen, setIsOpen] = React.useState(false);
 
   const toggle = () => setIsOpen(!isOpen);
-
 
   const GraphMenu = () => <Menu>
   <MenuButton
@@ -25,11 +25,9 @@ const NavBar = (props) => {
   Graph
   </MenuButton>
   <MenuList>
-    <MenuItem icon={<AddIcon />} command='⌘T'>
-      New Graph
-    </MenuItem>
-    <GraphCollection />
-    <MenuItem icon={<RepeatIcon />} command='⌘⇧N'>
+    <AddGraphModal setWorkingGraph={props.setWorkingGraph}/>
+    <GraphCollection setWorkingGraph={props.setWorkingGraph}/>
+    <MenuItem icon={<RepeatIcon />}>
       Save
     </MenuItem>
   </MenuList>
@@ -58,8 +56,8 @@ Functions
   return (
     <NavBarContainer {...props}>
       {/* <Image src={logo} width={120}/>      */}
-      
-      <GraphMenu />
+
+      <GraphMenu/>
       <FunctionsMenu />
 
       <Spacer />

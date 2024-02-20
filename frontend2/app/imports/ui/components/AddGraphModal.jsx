@@ -1,5 +1,5 @@
 import {
-    Button, FormControl, FormHelperText, FormLabel, Icon, IconButton, Input,
+    Button, FormControl, FormHelperText, FormLabel, Icon, IconButton, Input, MenuItem,
     Modal, ModalBody,
     ModalCloseButton,
     ModalContent, ModalFooter,
@@ -13,7 +13,7 @@ import React from "react";
 import {useForm} from "react-hook-form";
 import {FunctionsCollection} from "../../db/FunctionsCollection";
 
-export default function AddFunctionModal() {
+export default function AddGraphModal({setWorkingGraph}) {
     const { isOpen, onOpen, onClose } = useDisclosure()
     const {
         handleSubmit,
@@ -21,34 +21,32 @@ export default function AddFunctionModal() {
         formState: { errors, isSubmitting },
     } = useForm()
 
-    function onSubmit(functionData) {
-        functionData.userId = Meteor.userId()
-        Meteor.call('functions.insert', functionData);
-        console.log(result)
+    function onSubmit(graphData) {
+        let graph = {}
+        graph.userId = Meteor.userId()
+        graph.name = graphData.name
+        graph.data = {}
+        graph.status = "offline"
+        Meteor.call('graphs.insert', graph);
+        console.log(graph)
+        setWorkingGraph(graph)
         onClose()
     }
     return (
         <>
-            <IconButton onClick={onOpen} variant="outline" icon={<Icon as={AddIcon}></Icon> }></IconButton>
-
+            <MenuItem icon={<AddIcon />} onClick={onOpen}>
+                New Graph
+            </MenuItem>
             <Modal isOpen={isOpen} onClose={onClose}>
                 <ModalOverlay/>
                 <form onSubmit={handleSubmit(onSubmit)}>
                     <ModalContent>
-                        <ModalHeader>Add function</ModalHeader>
+                        <ModalHeader>Add graph</ModalHeader>
                         <ModalCloseButton/>
                         <ModalBody>
                             <FormControl>
-                                <FormLabel>Source Link (GitLab)</FormLabel>
-                                <Input {...register("gitlabLink")}/>
-                                <FormHelperText>Use raw source links!</FormHelperText>
                                 <FormLabel>Name</FormLabel>
-                                <Input  {...register("name")}/>
-                                <FormLabel>Description</FormLabel>
-                                <Textarea  {...register("description")} id={"description"} placeholder='Here is a sample placeholder'/>
-                                <Textarea  {...register("inputSchema")} id={"inputSchema"} placeholder='Place input schema here'/>
-                                <Textarea  {...register("outputSchema")} id={"outputSchema"} placeholder='Place output schema here'/>
-
+                                <Input {...register("name")}/>
                             </FormControl>
                         </ModalBody>
                         <ModalFooter>
@@ -60,5 +58,5 @@ export default function AddFunctionModal() {
                 </form>
             </Modal>
         </>
-);
+    );
 }

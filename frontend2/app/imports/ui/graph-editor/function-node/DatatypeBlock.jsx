@@ -1,0 +1,37 @@
+import {Card, CardHeader, Divider, FormControl, FormLabel, Input, Text} from "@chakra-ui/react";
+import {Handle, Position} from "reactflow";
+import React, { useMemo } from 'react'
+
+const handleStyleTarget = {
+    position: "relative",
+    top: "-100px",
+    left:"-10px"
+}
+
+const handleStyleSource = {
+    position: "relative",
+    top: "-100px",
+    left:"97%"
+}
+
+export default function DatatypeBlock ({property, offset, type}) {
+
+    return <Card>
+        <CardHeader>
+            <Text fontSize={'sm'}>
+                {property.title[0].toLowerCase() + property.title.slice(1)}
+            </Text>
+            <Text fontSize='xs' textTransform={'uppercase'}>
+                {property.type}
+            </Text>
+            <Divider/>
+            <FormControl pt={"2"}>
+                <FormLabel>Value</FormLabel>
+                <Input  size={"sm"}></Input>
+            </FormControl>
+        </CardHeader>
+        <Handle type={type} style={type === "source" ? handleStyleSource : handleStyleTarget} id={property.title}  position={type === "source" ? Position.Left : Position.Right}/>
+    </Card>
+
+    //
+}

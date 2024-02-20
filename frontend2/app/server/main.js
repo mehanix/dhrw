@@ -2,6 +2,8 @@ import { Meteor } from 'meteor/meteor';
 import { Accounts } from 'meteor/accounts-base';
 import '/imports/api/functionsMethods';
 import '/imports/api/functionsPublications';
+import '/imports/api/graphsMethods';
+import '/imports/api/graphsPublications';
 
 const SEED_USERNAME = 'datahive';
 const SEED_PASSWORD = 'example';

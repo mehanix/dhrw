@@ -1,8 +1,6 @@
 
 
-import { useDisclosure, IconButton, Icon, Card, Heading, CardBody, CardHeader, Divider, CardFooter, ButtonGroup, Spacer, Button, Box, AbsoluteCenter, HStack  } from "@chakra-ui/react";
-import { useDispatch, useSelector } from "react-redux";
-import { useEffect } from 'react';
+import { useDisclosure, IconButton, Icon, Card, Heading, CardBody, CardHeader, Divider, CardFooter, ButtonGroup, Spacer, Button, Box, AbsoluteCenter, HStack, Wrap } from "@chakra-ui/react";
 import React from 'react';
 
 import { useTracker } from 'meteor/react-meteor-data';
@@ -13,30 +11,32 @@ import { Tooltip } from '@chakra-ui/react'
 import { ViewIcon, DeleteIcon, AddIcon, CloseIcon } from "@chakra-ui/icons";
 import AddFunctionModal from "./AddFunctionModal";
 import {FunctionsCollection} from "../../db/FunctionsCollection";
+import { IoCodeSlashSharp } from "react-icons/io5";
 const FunctionCard = (props) => {
-  const onDragStart = (event, nodeType) => {
-    console.log(nodeType)
-    event.dataTransfer.setData('application/reactflow', {'label':props.function.name});
+    const funcData = props.function
+    const onDragStart = (event) => {
+    event.dataTransfer.setData('application/reactflow', JSON.stringify(funcData));
     event.dataTransfer.effectAllowed = 'move';
   };
 
-  const func = props.function
-  return <Card m="2" onDragStart={(event) => onDragStart(event, func.name)} draggable>
+  return <Card m="2" onDragStart={(event) => onDragStart(event)} draggable>
     <CardHeader>
-      <Heading size="xs">{func.name}</Heading>
+      <Heading size="xs">{funcData.name}</Heading>
     </CardHeader>
     <CardBody>
-    {func.description}
+        <Wrap>
+            {funcData.description}
+        </Wrap>
     </CardBody>
     <Divider />
     <CardFooter>
     <ButtonGroup spacing='2'>
       <Tooltip hasArrow label="View/edit code" aria-label='A tooltip'>
-       <IconButton icon={<ViewIcon />} variant='solid' colorScheme='blue'/>
+       <IconButton icon={<Icon as={IoCodeSlashSharp} />} variant='solid' colorScheme='blue'/>
       </Tooltip>
       <Tooltip hasArrow label="Delete function" aria-label='A tooltip'>
         <IconButton  onClick={() => {
-            Meteor.call('functions.remove', func._id)
+            Meteor.call('functions.remove', funcData._id)
         }}icon={<DeleteIcon />} variant='solid' colorScheme='red'/>
       </Tooltip>
     </ButtonGroup>
@@ -53,7 +53,7 @@ const FunctionsList = (props) => {
   return functionCards
 }
 
-export default function App() {
+export default function FunctionDrawer() {
   const { getButtonProps, getDisclosureProps, isOpen } = useDisclosure();
   const [hidden, setHidden] = useState(!isOpen);
 
