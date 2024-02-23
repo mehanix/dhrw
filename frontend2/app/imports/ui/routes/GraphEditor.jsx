@@ -10,7 +10,8 @@ import ReactFlow, {
     ConnectionLineType,
   Controls,
     Panel,
-    MiniMap
+    MiniMap,
+    MarkerType
 } from 'reactflow';
 
 import { useToast } from '@chakra-ui/react'
@@ -33,6 +34,22 @@ import {
 } from "meteor/react-meteor-data";
 
 const nodeTypes = { startNode: StartNode, endNode: EndNode, functionNode: FunctionNode };
+
+const edgeStyle = {
+    markerEnd: {
+        type: MarkerType.ArrowClosed,
+        width: 20,
+        height: 20,
+        color: '#FF0072',
+    },
+    style: {
+        strokeWidth: 2,
+        stroke: '#FF0072',
+    },
+    type:"straight",
+    // animated: true,
+}
+
 
 let id = 0;
 const getId = () => `dndnode_${id++}`;
@@ -223,7 +240,6 @@ function Flow() {
             };
 
             reactFlowInstance.addNodes([newNode])
-            // Meteor.call("graph.updateNodes", {_id: metadata._id, nodes:[...nodes, newNode]})
         },
         [reactFlowInstance],
     );
@@ -257,7 +273,7 @@ function Flow() {
 
     const onConnect = useCallback(
         (connection) => {
-            Meteor.call("graph.updateEdges", {_id: metadata._id, edges:addEdge({...connection, type:"straight"}, edges)})
+            Meteor.call("graph.updateEdges", {_id: metadata._id, edges:addEdge({...connection, ...edgeStyle}, edges)})
         }, [edges]
     );
         // (changes) => setNodes((nds) => applyNodeChanges(changes, nds)),
@@ -292,7 +308,7 @@ function Flow() {
                                         onDrop={onDrop}
                                        fitView >;
                                 <Controls></Controls>
-                                <ControlPanel onSave={null}/>
+                                <ControlPanel metadata={metadata} onSave={null}/>
                             </ReactFlow>
                         </div>
                     </ReactFlowProvider>

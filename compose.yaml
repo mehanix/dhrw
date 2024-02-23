@@ -11,47 +11,47 @@ services:
     networks:
       - datahive_net
 
-  db:
-    image: postgres
-    restart: always
-    environment:
-      POSTGRES_PASSWORD: example
-    networks:
-      - datahive_net
+#  db:
+#    image: postgres
+#    restart: always
+#    environment:
+#      POSTGRES_PASSWORD: example
+#    networks:
+#      - datahive_net
 
-  adminer:
-    image: adminer
-    restart: always
-    ports:
-      - 8080:8080
-    networks:
-      - datahive_net
+#  adminer:
+#    image: adminer
+#    restart: always
+#    ports:
+#      - 8080:8080
+#    networks:
+#      - datahive_net
 
-  control-center:
-    build:
-      context: ./control-center-v2
-      dockerfile: Dockerfile
-    restart: always
-    volumes:
-      - ./control-center-v2:/code/app
-      - /var/run/docker.sock:/var/run/docker.sock 
-    ports:
-     - 8000:8000
-    networks:
-      - datahive_net
+#  control-center:
+#    build:
+#      context: ./control-center-v2
+#      dockerfile: Dockerfile
+#    restart: always
+#    volumes:
+#      - ./control-center-v2:/code/app
+#      - /var/run/docker.sock:/var/run/docker.sock
+#    ports:
+#     - 8000:8000
+#    networks:
+#      - datahive_net
 
-  frontend:
-    container_name: frontend
-    image: frontend
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    volumes:
-      - ./frontend:/app
-    ports:
-      - 3000:3000
-    networks:
-      - datahive_net
+#  frontend:
+#    container_name: frontend
+#    image: frontend
+#    build:
+#      context: ./frontend
+#      dockerfile: Dockerfile
+#    volumes:
+#      - ./frontend:/app
+#    ports:
+#      - 3000:3000
+#    networks:
+#      - datahive_net
     
   worker_1:
     build:

@@ -2,6 +2,7 @@ import asyncio
 import aio_pika
 from aio_pika.pool import Pool
 import json
+import uuid
 
 RABBIT_URI = "amqp://guest:guest@rabbitmq/"
 WORKER_EXCHANGE = "workers"
@@ -9,6 +10,7 @@ WORKER_TASK_QUEUE = "tasks"
 
 tasks = []
 is_busy = False
+machine_id = uuid.uuid4()
 
 # async def main_tester(CONSUMER_QUEUE, EXCHANGE_NAME, PUBLISH_QUEUE):
 async def main_tester():
@@ -32,7 +34,7 @@ async def main_tester():
                 await channel.set_qos(10)
 
                 auto_delete = False if read_from == "start" else True
-                queue_name = "start" if read_from == "start" else ""
+                queue_name = "start" if read_from == "start" else machine_id + "_in"
 
                 queue = await channel.declare_queue(
                     queue_name,

@@ -61,6 +61,10 @@ div#react-target {
   height: 100%;
 }
 
+.react-flow__node {
+  z-index: -1 !important;
+}
+
 .dndflow .selectall {
   margin-top: 10px;
 }

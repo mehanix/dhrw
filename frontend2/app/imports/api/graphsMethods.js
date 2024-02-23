@@ -28,7 +28,6 @@ Meteor.methods({
         if (!this.userId) {
             throw new Meteor.Error('Not authorized.');
         }
-        console.log(_id, nodes)
         return GraphsCollection.update(_id, {
         $set: {
             "data.nodes": nodes
@@ -47,6 +46,14 @@ Meteor.methods({
             }
         })
     },
+
+    'graph.golive'(_id) {
+        const graphData = GraphsCollection.find({"_id":_id}).fetch()[0]
+        for (let node of graphData.data.nodes) {
+            console.log(node)
+            const machineId = Meteor.call("machines.bind", node)
+        }
+    }
 
     // 'tasks.setIsChecked'(taskId, isChecked) {
     //     check(taskId, String);

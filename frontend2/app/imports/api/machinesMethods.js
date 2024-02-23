@@ -11,29 +11,38 @@ Meteor.methods({
             throw new Meteor.Error('Not authorized.');
         }
 
-        docker.run('worker', [], process.stdout).then(function(data) {
+        docker.run('mp-nicoleta-datahive_worker_1', [], process.stdout, {
+            "HostConfig": {
+                "NetworkMode": "mp-nicoleta-datahive_datahive_net"
+            }
+
+        }).then(function(data) {
             var output = data[0];
             var container = data[1];
-            console.log(output.StatusCode);
-            return container.remove();
-        }).then(function(data) {
-            console.log('container removed');
-        }).catch(function(err) {
-            console.log(err);
-        });
+            console.log(output);
+            // return container.remove();
+        })
 
-        return MachinesCollection.insert()
+        // return MachinesCollection.insert()
     },
 
-    'functions.remove'(functionId) {
-        check(functionId, String);
+    'machines.remove'(machineId) {
+        check(machineId, String);
 
         if (!this.userId) {
             throw new Meteor.Error('Not authorized.');
         }
 
-        MachinesCollection.remove(functionId);
+        MachinesCollection.remove(machineId);
     },
+
+    'machines.bind'(nodeData) {
+
+    },
+
+    'machines.getAvailable'() {
+        return MachinesCollection.filter({"attachedTo":null}).fetch()
+    }
 
     // 'tasks.setIsChecked'(taskId, isChecked) {
     //     check(taskId, String);
