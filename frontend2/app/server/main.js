@@ -5,7 +5,7 @@ import '/imports/api/functionsPublications';
 import '/imports/api/graphsMethods';
 import '/imports/api/graphsPublications';
 import '/imports/api/machinesMethods';
-// import '/imports/api/machinesPublications';
+import '/imports/api/machinesPublications';
 
 const SEED_USERNAME = 'datahive';
 const SEED_PASSWORD = 'example';

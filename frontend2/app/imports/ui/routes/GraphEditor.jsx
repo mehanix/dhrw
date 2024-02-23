@@ -32,6 +32,7 @@ import {GraphsCollection} from "../../db/GraphsCollection";
 import {
     useTracker
 } from "meteor/react-meteor-data";
+import {MachinesCollection} from "../../db/MachinesCollection";
 
 const nodeTypes = { startNode: StartNode, endNode: EndNode, functionNode: FunctionNode };
 
@@ -251,11 +252,13 @@ function Flow() {
     const {metadata, nodes, edges, viewport} = useTracker(() => {
 
         const handler = Meteor.subscribe('graphs');
+        const handler2 = Meteor.subscribe('machines');
+
         if (!handler.ready()) {
             return {metadata:null, nodes:[],edges:[],viewport:[]}
         }
         const loadedGraph = GraphsCollection.find({_id:activeGraphId}).fetch()[0];
-
+        MachinesCollection.find({}).fetch(); //for debugging TODO remove
         return {metadata:loadedGraph, nodes:loadedGraph.data.nodes, edges:loadedGraph.data.edges, viewport:loadedGraph.data.viewport}
     }, [activeGraphId])
 

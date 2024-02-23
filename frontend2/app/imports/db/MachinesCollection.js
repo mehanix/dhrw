@@ -11,10 +11,10 @@ export const MachinesCollection = new Mongo.Collection('machines');
 // });
 
 MachinesCollection.schema = new SimpleSchema({
-    dockerId:{type: String},
-    graphId:{type: String},
-    nodeId:{type: String},
-    functionCode:{type: String}
+    dockerId: {type: String},
+    graphId:{type: String, optional:true},
+    nodeId:{type: String, optional:true},
+    functionCode:{type: String, optional:true}
 
 });
 

@@ -15,15 +15,24 @@ Meteor.methods({
             "HostConfig": {
                 "NetworkMode": "mp-nicoleta-datahive_datahive_net"
             }
+        },{}, function (err, data, container) {
+            if (err) throw err;
+        })    .on('container', Meteor.bindEnvironment((container) => {
+            console.log("sau asta", container.id)
+            MachinesCollection.insert({
+                "dockerId": container.id
+            })
+        }))
 
-        }).then(function(data) {
-            var output = data[0];
-            var container = data[1];
-            console.log(output);
-            // return container.remove();
-        })
-
-        // return MachinesCollection.insert()
+            .on('stream', (stream) => {
+                stream.on('data', data => console.log("\nmachine ", ":", data.toString()));
+            })
+            .on('data', (data) => {
+                console.log('data', data);
+            })
+            .on('err', (err) => {
+                console.log('err', err);
+            }) //TODO. if container dies remove from database. how?
     },
 
     'machines.remove'(machineId) {
@@ -41,7 +50,7 @@ Meteor.methods({
     },
 
     'machines.getAvailable'() {
-        return MachinesCollection.filter({"attachedTo":null}).fetch()
+        return MachinesCollection.filter({"nodeId":null}).fetch()
     }
 
     // 'tasks.setIsChecked'(taskId, isChecked) {
