@@ -7,7 +7,7 @@ import uuid
 RABBIT_URI = "amqp://guest:guest@rabbitmq/"
 WORKER_EXCHANGE = "workers"
 WORKER_TASK_QUEUE = "tasks"
-
+SERVER_UPDATE_QUEUE = "server_responses"
 tasks = []
 is_busy = False
 machine_id = uuid.uuid4()
