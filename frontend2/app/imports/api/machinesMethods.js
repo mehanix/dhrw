@@ -2,6 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import { check } from 'meteor/check';
 import { MachinesCollection } from '../db/MachinesCollection';
 import Docker from 'dockerode'
+import {publish, publishh} from "../../server/main";
 
 const docker = new Docker();
 Meteor.methods({
@@ -22,20 +23,16 @@ Meteor.methods({
             if (err) throw err;
         })    .on('container', Meteor.bindEnvironment((container) => {
             console.log("[docker] created:", container.id)
-            // MachinesCollection.insert({
-            //     "dockerId": container.id
-            // })
         }))
-        //
-        // .on('stream', (stream) => {
-        //     stream.on('data', data => console.log("\nmachine ", ":", data.toString()));
-        // })
-        // .on('data', (data) => {
-        //     console.log('data', data);
-        // })
-        // .on('err', (err) => {
-        //     console.log('err', err);
-        // })
+        .on('stream', (stream) => {
+            stream.on('data', data => console.log("\n", data.toString()));
+        })
+        .on('data', (data) => {
+            console.log('data', data);
+        })
+        .on('err', (err) => {
+            console.log('err', err);
+        })
     },
 
     /**
@@ -55,8 +52,7 @@ Meteor.methods({
     /**
      * Upsert operation. Update heartbeat.
      * If machine doesn't exist in DB yet, it will be added.
-     * @param machineId id of machine to be updated
-     * @param timestamp new timestamp when the machine was last heard from
+     * @param machine info about the machine, incl. timestamp and availability status
      */
     'machines.heartbeat'(machine) {
         const result = MachinesCollection.upsert(
@@ -94,6 +90,7 @@ Meteor.methods({
      * */
     'machines.bindRequest'([graphId, nodeData]) {
         console.log("request to bind", graphId, nodeData)
+        publishh("task.up", {})
     },
 
     'machines.getAvailableCount'() {
@@ -111,7 +108,7 @@ Meteor.methods({
         // if not needed/not used, will be cleaned up.
         // is this a good idea?
 
-        const willAdd = (minToAdd / 10) * 10
+        const willAdd = (minToAdd / 10 + 1) * 10
         console.log("[Meteor] adding ", willAdd, "machines")
         for (let i=0; i<willAdd; i++) {
             Meteor.call("machines.create")

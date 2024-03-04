@@ -13,6 +13,12 @@ const SEED_USERNAME = 'datahive';
 const SEED_PASSWORD = 'example';
 const HEARTBEAT_TIMEOUT_MS = 30000
 
+const conn = await amqplib.connect('amqp://localhost');
+const ch1 = await conn.createChannel();
+await ch1.assertQueue(queue);
+let workers_channel = await conn.createChannel();
+await workers_channel.assertExchange('workers', 'topic');
+
 Meteor.startup(() => {
   if (!Accounts.findUserByUsername(SEED_USERNAME)) {
     Accounts.createUser({
@@ -31,13 +37,7 @@ Meteor.startup(() => {
 
 });
 
-
-
 (async () => {
-  const conn = await amqplib.connect('amqp://localhost');
-
-  const ch1 = await conn.createChannel();
-  await ch1.assertQueue(queue);
 
   // Listener
   ch1.consume(queue, Meteor.bindEnvironment((msg) => {
@@ -62,12 +62,16 @@ Meteor.startup(() => {
   }));
 
   // Sender
-  // const ch2 = await conn.createChannel();
-  //
+
   // setInterval(() => {
-  //   ch2.sendToQueue(queue, Buffer.from('something to do'));
   // }, 1000);
 })();
+
+export const publishh = async (routingKey, message) => {
+    await workers_channel.publish("workers", routingKey, Buffer.from('{"message":"hi"}'));
+
+
+}
 
 // amqplib.connect('amqp://guest:guest@localhost/', (err, conn) => {
 //   if (err) throw err;

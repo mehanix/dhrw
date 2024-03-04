@@ -130,11 +130,11 @@ async def main_loop() -> None:
             async with queue.iterator() as queue_iter:
                 async for message in queue_iter:
                     msg = json.loads(message.body)
-                    print(f"[worker {CONTAINER_ID}] received task:", msg)
                     if is_busy == True:
-                        print(f"[worker {CONTAINER_ID}] is busy, rejecting...")
+#                         print(f"[worker {CONTAINER_ID}] is busy, rejecting...")
                         await message.reject(requeue=True)
                     else:
+                        print(f"[worker {CONTAINER_ID}] received task:", msg)
                         # TODO rewrite:
                         # nicer branching logic
                         # unique start/end topics per comp graph?

@@ -58,7 +58,7 @@ Meteor.methods({
             Meteor.call("machines.scaleup", graph.data.nodes.length)
         }
 
-        // queue up nodes to be picked up by machines
+        // queue nodes to be picked up by machines
         for (let node of graph.data.nodes) {
             Meteor.call("machines.bindRequest", [graph._id, node])
         }
