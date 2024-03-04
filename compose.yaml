@@ -53,13 +53,13 @@ services:
 #    networks:
 #      - datahive_net
     
-  worker_1:
-    build:
-      context: ./worker
-      dockerfile: Dockerfile
+#  worker_1:
+#    build:
+#      context: ./worker
+#      dockerfile: Dockerfile
 #    restart: always
-    networks:
-      - datahive_net
+#    networks:
+#      - datahive_net
 #
 #  worker_2:
 #    build:

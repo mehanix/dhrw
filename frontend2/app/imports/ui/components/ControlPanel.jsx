@@ -17,9 +17,9 @@ export default function ControlPanel({metadata}) {
     }
 
     const changeGraphState = () => {
-        // Meteor.call("graph.golive", metadata._id)
-        console.log("creating machine......")
-        Meteor.call("machines.create")
+        Meteor.call("graph.golive", metadata)
+         console.log("going live......")
+        // Meteor.call("machines.create")
     }
     return <Panel position="top-center"><Card>
         <ButtonGroup isAttached variant='outline' spacing='2'>

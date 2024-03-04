@@ -47,11 +47,20 @@ Meteor.methods({
         })
     },
 
-    'graph.golive'(_id) {
-        const graphData = GraphsCollection.find({"_id":_id}).fetch()[0]
-        for (let node of graphData.data.nodes) {
-            console.log(node)
-            const machineId = Meteor.call("machines.bind", node)
+    'graph.golive'(graph) {
+        console.log("GRAPH INFO ==================")
+
+        const availableMachines = Meteor.call("machines.getAvailableCount")
+
+        console.log("[Meteor] Available machines:", availableMachines)
+        // start more machines if needed
+        if (graph.data.nodes.length > availableMachines) {
+            Meteor.call("machines.scaleup", graph.data.nodes.length)
+        }
+
+        // queue up nodes to be picked up by machines
+        for (let node of graph.data.nodes) {
+            Meteor.call("machines.bindRequest", [graph._id, node])
         }
     }
 

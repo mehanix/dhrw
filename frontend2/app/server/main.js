@@ -24,7 +24,7 @@ Meteor.startup(() => {
 
   Meteor.setInterval(() => {
     const date = Date.now() - HEARTBEAT_TIMEOUT_MS
-    console.log("[Meteor] cleaning up unresponsive/nonexistent machine IDs from DB... with timestamp less than", date)
+    console.log("[Meteor] cleaning up obsolete machine IDs from DB with timestamp less than", date)
     Meteor.call("machines.cleanup", date)
   }, HEARTBEAT_TIMEOUT_MS)
 
@@ -46,7 +46,7 @@ Meteor.startup(() => {
       const message_object = JSON.parse(msg.content)
       switch (msg.fields.routingKey) {
           case "worker_reply.up":
-            Meteor.call("machines.heartbeat", message_object._id, message_object.heartbeat)
+            Meteor.call("machines.heartbeat", message_object)
             break
           case "worker_reply.down":
             Meteor.call("machines.remove", message_object._id)
