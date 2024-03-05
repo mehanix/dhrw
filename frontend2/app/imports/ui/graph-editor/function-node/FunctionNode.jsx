@@ -15,11 +15,7 @@ import {
     Heading,
     InputGroup, Button, FormErrorMessage, IconButton, HStack, Tooltip, Divider, VStack
 } from '@chakra-ui/react'
-import { Select } from '@chakra-ui/react'
 import { useForm } from "react-hook-form";
-import {FiFile} from "react-icons/fi";
-import { FcDataSheet } from "react-icons/fc";
-import {DeleteIcon, EditIcon} from "@chakra-ui/icons";
 import DatatypeBlock from "./DatatypeBlock";
 import { IoCodeSlashSharp } from "react-icons/io5";
 
@@ -36,7 +32,7 @@ export default function FunctionNode({ data }) {
         const inputSchema = JSON.parse(data.inputSchema)
 
         return Object.keys(inputSchema.properties).map((property, index) => {
-            return <DatatypeBlock property={inputSchema.properties[property]} type="target" offset={index * 100} />
+            return <DatatypeBlock functionId={data._id} property={inputSchema.properties[property]} type="target" offset={index * 100} />
         })
     }
 
@@ -44,7 +40,7 @@ export default function FunctionNode({ data }) {
         const outputSchema = JSON.parse(data.outputSchema)
 
         return Object.keys(outputSchema.properties).map((property, index) => {
-            return <DatatypeBlock property={outputSchema.properties[property]} type="source" offset={index * 30} />
+            return <DatatypeBlock functionId={data._id} property={outputSchema.properties[property]} type="source" offset={index * 30} />
         })
     }
 

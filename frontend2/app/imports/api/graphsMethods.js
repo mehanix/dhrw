@@ -54,13 +54,20 @@ Meteor.methods({
 
         console.log("[Meteor] Available machines:", availableMachines)
         // start more machines if needed
-        if (graph.data.nodes.length > availableMachines) {
-            Meteor.call("machines.scaleup", graph.data.nodes.length)
-        }
+        // if (graph.data.nodes.length > availableMachines) {
+        //     Meteor.call("machines.scaleup", graph.data.nodes.length)
+        // }
 
         // queue nodes to be picked up by machines
         for (let node of graph.data.nodes) {
-            Meteor.call("machines.bindRequest", [graph._id, node])
+            const nodeInfo = {
+                graphId: graph._id,
+                nodeId: node.id,
+                functionId: node.data._id,
+                userId: node.data.userId,
+                functionType: node.type
+            }
+            Meteor.call("machines.bindRequest", nodeInfo)
         }
     }
 

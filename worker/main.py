@@ -24,7 +24,7 @@ async def main_loop() -> None:
     global is_busy
     async def publish(exchange, message, routing_key):
         await exchange.publish(formatted_message(message), routing_key)
-        print(f" [workers] {CONTAINER_ID}: Sent ", message)
+#         print(f" [workers] {CONTAINER_ID}: Sent ", message)
 
     async def get_connection_channel_exchange():
         connection = await connect(RABBIT_URI)
@@ -146,6 +146,9 @@ async def main_loop() -> None:
 #                                 await add_task(consume_work, [parent['name'], msg['name'], msg['code']])
 
                         is_busy = True
+#                         publish(WORKER_EXCHANGE,{
+#
+#                         },"task.node_bound")
                         await message.ack()
 
                 await asyncio.sleep(0.1)

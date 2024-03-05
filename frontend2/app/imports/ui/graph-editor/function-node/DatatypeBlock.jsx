@@ -14,7 +14,7 @@ const handleStyleSource = {
     left:"97%"
 }
 
-export default function DatatypeBlock ({property, offset, type}) {
+export default function DatatypeBlock ({functionId, property, offset, type}) {
 
     return <Card>
         <CardHeader>
@@ -30,7 +30,7 @@ export default function DatatypeBlock ({property, offset, type}) {
                 <Input  size={"sm"}></Input>
             </FormControl>
         </CardHeader>
-        <Handle type={type} style={type === "source" ? handleStyleSource : handleStyleTarget} id={property.title}  position={type === "source" ? Position.Left : Position.Right}/>
+        <Handle type={type} style={type === "source" ? handleStyleSource : handleStyleTarget} id={`${functionId}.${property.title}.${property.type}`}  position={type === "source" ? Position.Left : Position.Right}/>
     </Card>
 
     //

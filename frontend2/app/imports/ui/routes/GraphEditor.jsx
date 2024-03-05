@@ -33,6 +33,7 @@ import {
     useTracker
 } from "meteor/react-meteor-data";
 import {MachinesCollection} from "../../db/MachinesCollection";
+import { Random } from 'meteor/random'
 
 const nodeTypes = { startNode: StartNode, endNode: EndNode, functionNode: FunctionNode };
 
@@ -53,158 +54,7 @@ const edgeStyle = {
 
 
 let id = 0;
-const getId = () => `dndnode_${id++}`;
-
-const DnDFlow = () => {
-  const reactFlowWrapper = useRef(null);
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-  const [reactFlowInstance, setReactFlowInstance] = useState(null);
-
-  const [workingGraph, setWorkingGraph] = useState(null)
-  const toast = useToast()
-
- const onSave = useCallback(() => {
-        if (reactFlowInstance) {
-            let updatedWorkingGraph = workingGraph
-            updatedWorkingGraph.data = reactFlowInstance.toObject()
-            console.log(updatedWorkingGraph)
-            Meteor.call("graphs.insert", updatedWorkingGraph)
-        }
-    }, [reactFlowInstance]);
-
-
-    useEffect(() => {    // Update the document title using the browser API
-      if (workingGraph === null)
-          return
-
-
-      if (Object.keys(workingGraph.data).length === 0) {
-          setNodes(initialNodes);
-          toast({
-              title: 'Ready to go',
-              description: "Created graph " + workingGraph.name,
-              status: 'info',
-              duration: 9000,
-              isClosable: true,
-          })
-
-      }
-          return
-
-      const { x = 0, y = 0, zoom = 1 } = workingGraph.data.viewport;
-      setNodes(workingGraph.data.nodes || []);
-      setEdges(workingGraph.data.edges || []);
-      reactFlowInstance.setViewport({ x, y, zoom });
-
-      toast({
-          title: 'Ready to go',
-          description: "Loaded graph " + workingGraph.name,
-          status: 'info',
-          duration: 9000,
-          isClosable: true,
-      })
-
-
-    }, [workingGraph]);
-
-    const onConnect = useCallback(
-    (params) => setEdges((eds) => addEdge({...params, type:"straight"}, eds)),
-    [],
-  );
-
-  const onDragOver = useCallback((event) => {
-    event.preventDefault();
-    event.dataTransfer.dropEffect = 'move';
-  }, []);
-
-  const onDrop = useCallback(
-    (event) => {
-      event.preventDefault();
-
-      const nodeData = event.dataTransfer.getData('application/reactflow');
-
-      // check if the dropped element is valid
-      if (typeof nodeData === 'undefined' || !nodeData) {
-          return;
-      }
-      // reactFlowInstance.project was renamed to reactFlowInstance.screenToFlowPosition
-      // and you don't need to subtract the reactFlowBounds.left/top anymore
-      // details: https://reactflow.dev/whats-new/2023-11-10
-      const position = reactFlowInstance.screenToFlowPosition({
-        x: event.clientX,
-        y: event.clientY,
-      });
-      const newNode = {
-        id: getId(),
-        type:"functionNode",
-        position,
-        data: {nodeId: id, ...JSON.parse(nodeData)},
-      };
-
-      setNodes((nds) => nds.concat(newNode));
-    },
-    [reactFlowInstance],
-  );
-
-
-    const edgeUpdateSuccessful = useRef(true);
-    const onEdgeUpdateStart = useCallback(() => {
-        edgeUpdateSuccessful.current = false;
-    }, []);
-
-    const onEdgeUpdate = useCallback((oldEdge, newConnection) => {
-        edgeUpdateSuccessful.current = true;
-        setEdges((els) => updateEdge(oldEdge, newConnection, els));
-    }, []);
-
-    const onEdgeUpdateEnd = useCallback((_, edge) => {
-        if (!edgeUpdateSuccessful.current) {
-            setEdges((eds) => eds.filter((e) => e.id !== edge.id));
-        }
-
-        edgeUpdateSuccessful.current = true;
-    }, []);
-
-
-  return (
-    <div className="main">
-      <NavBar setWorkingGraph={setWorkingGraph}/>
-      <div className="dndflow">
-          {workingGraph === null ? <p className="reactflow-wrapper" >Load a graph to start working.</p>:
-              <ReactFlowProvider >
-                  <div className="reactflow-wrapper" ref={reactFlowWrapper}>
-                      <ReactFlow
-                          nodeTypes={nodeTypes}
-                          nodes={nodes}
-                          edges={edges}
-                          onNodesChange={onNodesChange}
-                          onEdgesChange={onEdgesChange}
-                          onEdgeUpdate={onEdgeUpdate}
-                          onEdgeUpdateStart={onEdgeUpdateStart}
-                          onEdgeUpdateEnd={onEdgeUpdateEnd}
-                          onConnect={onConnect}
-                          connectionLineType={ConnectionLineType.Straight}
-                          onInit={setReactFlowInstance}
-                          onDrop={onDrop}
-                          onDragOver={onDragOver}
-                          snapToGrid={true}
-                          // fitView
-                      >
-                          <Controls></Controls>
-                          <ControlPanel onSave={onSave}/>
-                      </ReactFlow>
-                  </div>
-              </ReactFlowProvider>
-                  }
-        <Sidebar />
-      </div>
-    </div>
-
-  );
-};
-
-
+const getId = () => Random.id()
 function Flow() {
     const [activeGraphId, setActiveGraphId] = useState(null)
     const [reactFlowInstance, setReactFlowInstance] = useState(null);
@@ -220,10 +70,10 @@ function Flow() {
         (event) => {
             event.preventDefault();
 
-            const nodeData = event.dataTransfer.getData('application/reactflow');
+            const functionData = event.dataTransfer.getData('application/reactflow');
 
             // check if the dropped element is valid
-            if (typeof nodeData === 'undefined' || !nodeData) {
+            if (typeof functionData === 'undefined' || !functionData) {
                 return;
             }
             // reactFlowInstance.project was renamed to reactFlowInstance.screenToFlowPosition
@@ -233,11 +83,12 @@ function Flow() {
                 x: event.clientX,
                 y: event.clientY,
             });
+            const newId = getId()
             const newNode = {
-                id: getId(),
+                id: newId,
                 type:"functionNode",
                 position,
-                data: {nodeId: id, ...JSON.parse(nodeData)},
+                data: JSON.parse(functionData),
             };
 
             reactFlowInstance.addNodes([newNode])
@@ -288,6 +139,14 @@ function Flow() {
 
     // const [edges, setEdges] = useState([]);
 
+    const isValidConnection = (connection) => {
+        const [sourceNode, sourceDataTitle, sourceDataType] = connection.sourceHandle.split('.')
+        const [targetNode, targetDataTitle, targetDataType] = connection.targetHandle.split('.')
+
+        return sourceDataType === targetDataType;
+    }
+
+
     return (
         <div className="main">
             <GraphEditorContext.Provider value={setActiveGraphId}>
@@ -305,7 +164,7 @@ function Flow() {
                                        onEdgesChange={onEdgesChange}
                                        onConnect={onConnect}
                                        connectionLineType={ConnectionLineType.Straight}
-
+                                       isValidConnection={isValidConnection}
                                        //dnd
                                         onDragOver={onDragOver}
                                         onDrop={onDrop}

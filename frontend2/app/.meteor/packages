@@ -23,3 +23,4 @@ react-meteor-data       # React higher-order component for reactively tracking M
 dev-error-overlay
 accounts-password
 aldeed:collection2
+random

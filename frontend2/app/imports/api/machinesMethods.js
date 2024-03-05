@@ -64,7 +64,7 @@ Meteor.methods({
         })
 
         if ("insertedId" in result) {
-            console.log("[Meteor] New machine ", machine._id, " showed up in heartbeats. Adding to Mongo")
+            // console.log("[Meteor] New machine ", machine._id, " showed up in heartbeats. Adding to Mongo")
         } else {
             // console.log("[Meteor] Machine ", machine._id," sent heartbeat. Is busy:", machine.is_busy)
         }
@@ -90,7 +90,7 @@ Meteor.methods({
      * */
     'machines.bindRequest'([graphId, nodeData]) {
         console.log("request to bind", graphId, nodeData)
-        publishh("task.up", {})
+        // publishh("task.up", {})
     },
 
     'machines.getAvailableCount'() {
