@@ -69,8 +69,6 @@ Meteor.startup(() => {
 
 export const publishh = async (routingKey, message) => {
     await workers_channel.publish("workers", routingKey, Buffer.from('{"message":"hi"}'));
-
-
 }
 
 // amqplib.connect('amqp://guest:guest@localhost/', (err, conn) => {

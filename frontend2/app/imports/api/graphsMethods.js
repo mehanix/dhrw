@@ -2,7 +2,10 @@ import { Meteor } from 'meteor/meteor';
 import { check } from 'meteor/check';
 import { FunctionsCollection } from '../db/FunctionsCollection';
 import {GraphsCollection} from "../db/GraphsCollection";
+// import { Gitlab } from '@gitbeaker/rest';
+import 'dotenv/config'
 
+console.log("env", process.env)
 Meteor.methods({
     'graphs.insert'(graphObject) {
         // GraphsCollection.rawCollection().drop();
@@ -58,6 +61,30 @@ Meteor.methods({
         //     Meteor.call("machines.scaleup", graph.data.nodes.length)
         // }
 
+        // const gitlabApi = new Gitlab({
+        //     token: process.env.GITLAB_ACCESS_TOKEN,
+        // });
+
+        const formatSourceTargetEdge = (edge => {
+            const [sourceFunction, sourceTitle, sourceType] = edge.sourceHandle.split('.')
+            const [targetFunction, targetTitle, targetType] = edge.targetHandle.split('.')
+            return  {
+                sourceArgument: {
+                    nodeId: edge.source,
+                    function: sourceFunction,
+                    name: sourceTitle,
+                    datatype: sourceType
+                },
+                targetArgument: {
+                    nodeId: edge.target,
+                    function: targetFunction,
+                    name: targetTitle,
+                    datatype: targetType
+                }
+            }
+
+        })
+
         // queue nodes to be picked up by machines
         for (let node of graph.data.nodes) {
             const nodeInfo = {
@@ -65,8 +92,14 @@ Meteor.methods({
                 nodeId: node.id,
                 functionId: node.data._id,
                 userId: node.data.userId,
-                functionType: node.type
+                inputEdges:graph.data.edges
+                    .filter(edge => edge.source === node.id)
+                    .map(edge => formatSourceTargetEdge(edge)),
+                outputEdges:graph.data.edges
+                    .filter(edge => edge.target === node.id)
+                    .map(edge => formatSourceTargetEdge(edge))
             }
+
             Meteor.call("machines.bindRequest", nodeInfo)
         }
     }
