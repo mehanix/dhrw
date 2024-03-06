@@ -2,11 +2,10 @@ import { Meteor } from 'meteor/meteor';
 import { check } from 'meteor/check';
 import { FunctionsCollection } from '../db/FunctionsCollection';
 import {GraphsCollection} from "../db/GraphsCollection";
-// import { Gitlab } from '@gitbeaker/rest';
-import 'dotenv/config'
 
-console.log("env", process.env)
+console.log("env", process.env.GITLAB_ACCESS_TOKEN, process.env.PWD)
 Meteor.methods({
+
     'graphs.insert'(graphObject) {
         // GraphsCollection.rawCollection().drop();
         if (!this.userId) {

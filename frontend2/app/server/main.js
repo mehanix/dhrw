@@ -19,6 +19,8 @@ await ch1.assertQueue(queue);
 let workers_channel = await conn.createChannel();
 await workers_channel.assertExchange('workers', 'topic');
 
+console.log(Meteor.settings.GITLAB_ACCESS_TOKEN)
+
 Meteor.startup(() => {
   if (!Accounts.findUserByUsername(SEED_USERNAME)) {
     Accounts.createUser({
