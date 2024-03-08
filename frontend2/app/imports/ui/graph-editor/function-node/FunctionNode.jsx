@@ -29,6 +29,7 @@ export default function FunctionNode({ data }) {
     }, []);
 
     const Inputs = () => {
+        if (!("inputSchema" in data)) return;
         const inputSchema = JSON.parse(data.inputSchema)
 
         return Object.keys(inputSchema.properties).map((property, index) => {
@@ -37,6 +38,7 @@ export default function FunctionNode({ data }) {
     }
 
     const Outputs = () => {
+        if (!("inputSchema" in data)) return;
         const outputSchema = JSON.parse(data.outputSchema)
 
         return Object.keys(outputSchema.properties).map((property, index) => {

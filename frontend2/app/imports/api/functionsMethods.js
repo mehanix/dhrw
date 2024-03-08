@@ -12,8 +12,10 @@ import {PythonShell} from 'python-shell';
         // TODO DO THIS IN A SEPARATE CONTAINER
 
         const code = await Meteor.callAsync("functions.fetchCode", functionObject.gitlabLink)
-        const schemas = await Meteor.callAsync("functions.generateSchemas", code)
-
+        const [input_schema, output_schema] = await Meteor.callAsync("functions.generateSchemas", code)
+        functionObject.inputSchema = input_schema
+        functionObject.outputSchema = output_schema
+        console.log("fun", functionObject)
         return FunctionsCollection.insert(functionObject)
     },
 
@@ -32,10 +34,12 @@ import {PythonShell} from 'python-shell';
 
         const schemaSnippet = "\n\ninput_schema = Input.model_json_schema()  # (1)!\n" +
                 "output_schema = Output.model_json_schema()  # (1)!\n" +
-                "print([json.dumps(input_schema), json.dumps(output_schema)])  # (2)!\n"
-        console.log("codeeee", pythonCode + schemaSnippet)
+                "print(json.dumps(input_schema))  # (2)!\n" +
+                "print(json.dumps(output_schema))  # (2)!\n";
+
+            console.log("codeeee", pythonCode + schemaSnippet)
         const messages = await PythonShell.runString(pythonCode + schemaSnippet, null)
-        console.log(messages)
+        return messages
     },
 
     async 'functions.fetchCode'(functionFile) {

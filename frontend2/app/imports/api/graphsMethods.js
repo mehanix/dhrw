@@ -55,11 +55,11 @@ Meteor.methods({
 
         console.log("[Meteor] Available machines:", availableMachines)
         // start more machines if needed
-        // if (graph.data.nodes.length > availableMachines) {
-        //     console.log("[Meteor] Not enough machines available. Scaling up!")
+        if (graph.data.nodes.length > availableMachines) {
+            console.log("[Meteor] Not enough machines available. Scaling up!")
 
-        //     Meteor.call("machines.scaleup", graph.data.nodes.length)
-        // }
+            Meteor.call("machines.scaleup", graph.data.nodes.length)
+        }
         /** Edges have a ton of info in react-flow, we only need these fields for the machines to work */
         const formatSourceTargetEdge = (edge => {
             const [sourceFunction, sourceTitle, sourceType] = edge.sourceHandle.split('.')
