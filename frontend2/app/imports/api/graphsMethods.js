@@ -3,7 +3,6 @@ import { check } from 'meteor/check';
 import { FunctionsCollection } from '../db/FunctionsCollection';
 import {GraphsCollection} from "../db/GraphsCollection";
 
-console.log("env", process.env.GITLAB_ACCESS_TOKEN, process.env.PWD)
 Meteor.methods({
 
     'graphs.insert'(graphObject) {
@@ -50,20 +49,18 @@ Meteor.methods({
     },
 
     'graph.golive'(graph) {
-        console.log("GRAPH INFO ==================")
+        console.log("Going live....")
 
         const availableMachines = Meteor.call("machines.getAvailableCount")
 
         console.log("[Meteor] Available machines:", availableMachines)
         // start more machines if needed
         // if (graph.data.nodes.length > availableMachines) {
+        //     console.log("[Meteor] Not enough machines available. Scaling up!")
+
         //     Meteor.call("machines.scaleup", graph.data.nodes.length)
         // }
-
-        // const gitlabApi = new Gitlab({
-        //     token: process.env.GITLAB_ACCESS_TOKEN,
-        // });
-
+        /** Edges have a ton of info in react-flow, we only need these fields for the machines to work */
         const formatSourceTargetEdge = (edge => {
             const [sourceFunction, sourceTitle, sourceType] = edge.sourceHandle.split('.')
             const [targetFunction, targetTitle, targetType] = edge.targetHandle.split('.')
@@ -84,7 +81,9 @@ Meteor.methods({
 
         })
 
-        // queue nodes to be picked up by machines
+        /** queue nodes to be picked up by machines */
+        /** Extracts data necessary for machine to run from node, filters out rendering info */
+
         for (let node of graph.data.nodes) {
             const nodeInfo = {
                 graphId: graph._id,
@@ -102,19 +101,6 @@ Meteor.methods({
             Meteor.call("machines.bindRequest", nodeInfo)
         }
     }
-
-    // 'tasks.setIsChecked'(taskId, isChecked) {
-    //     check(taskId, String);
-    //     check(isChecked, Boolean);
-    //
-    //     if (!this.userId) {
-    //         throw new Meteor.Error('Not authorized.');
-    //     }
-    //
-    //     TasksCollection.update(taskId, {
-    //         $set: {
-    //             isChecked
-    //         }
-    //     });
-    // }
 });
+
+//TODO: on drag n drop functie din repo in graf ia codul si salveaza l in nod!

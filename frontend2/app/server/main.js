@@ -18,8 +18,7 @@ const ch1 = await conn.createChannel();
 await ch1.assertQueue(queue);
 let workers_channel = await conn.createChannel();
 await workers_channel.assertExchange('workers', 'topic');
-
-console.log(Meteor.settings.GITLAB_ACCESS_TOKEN)
+import { Gitlab } from 'gitlab';
 
 Meteor.startup(() => {
   if (!Accounts.findUserByUsername(SEED_USERNAME)) {
@@ -73,6 +72,10 @@ export const publishh = async (routingKey, message) => {
     await workers_channel.publish("workers", routingKey, Buffer.from('{"message":"hi"}'));
 }
 
+export const GitlabApi = new Gitlab({
+  host: 'https://gitlab.informatik.uni-wuerzburg.de/',
+  token: Meteor.settings.GITLAB_ACCESS_TOKEN
+});
 // amqplib.connect('amqp://guest:guest@localhost/', (err, conn) => {
 //   if (err) throw err;
 //

@@ -70,28 +70,34 @@ function Flow() {
         (event) => {
             event.preventDefault();
 
-            const functionData = event.dataTransfer.getData('application/reactflow');
+            const dataRaw = event.dataTransfer.getData('application/reactflow');
+
+            // Fetch code from Gitlab and add it to the node
 
             // check if the dropped element is valid
-            if (typeof functionData === 'undefined' || !functionData) {
+            if (typeof dataRaw === 'undefined' || !dataRaw) {
                 return;
             }
-            // reactFlowInstance.project was renamed to reactFlowInstance.screenToFlowPosition
-            // and you don't need to subtract the reactFlowBounds.left/top anymore
-            // details: https://reactflow.dev/whats-new/2023-11-10
-            const position = reactFlowInstance.screenToFlowPosition({
-                x: event.clientX,
-                y: event.clientY,
-            });
-            const newId = getId()
-            const newNode = {
-                id: newId,
-                type:"functionNode",
-                position,
-                data: JSON.parse(functionData),
-            };
+            const parsedData = JSON.parse(dataRaw)
+            Meteor.callAsync("functions.fetchCode", parsedData.gitlabLink).then((result) => {
+                console.log(result)
+                const functionData = {...parsedData, code:result}
 
-            reactFlowInstance.addNodes([newNode])
+                const position = reactFlowInstance.screenToFlowPosition({
+                    x: event.clientX,
+                    y: event.clientY,
+                });
+                const newId = getId()
+                const newNode = {
+                    id: newId,
+                    type:"functionNode",
+                    position,
+                    data: functionData,
+                };
+                console.log(newNode)
+                reactFlowInstance.addNodes([newNode])
+            }).catch(exc => console.log(exc))
+
         },
         [reactFlowInstance],
     );
