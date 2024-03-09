@@ -44,6 +44,7 @@ async def main_tester():
 
                 ex = exec(function_code.replace('\\n', '\n'), globals(), locals())
 
+
                 await queue.bind(WORKER_EXCHANGE, routing_key=f"{read_from}.#")
                 async with queue.iterator() as queue_iter:
                     async for message in queue_iter:

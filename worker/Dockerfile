@@ -8,4 +8,4 @@ RUN pip install -r requirements.txt
 
 COPY . .
 
-ENTRYPOINT [ "./wait-for-it.sh", "rabbitmq:5672", "--", "python3", "-u", "main.py" ]
+ENTRYPOINT [ "./wait-for-it.sh", "-q", "rabbitmq:5672", "--", "python3", "-u", "main.py" ]

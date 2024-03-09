@@ -91,11 +91,12 @@ Meteor.methods({
                 functionId: node.data._id,
                 userId: node.data.userId,
                 code: node.data.code,
+                name: node.data.name,
                 inputEdges:graph.data.edges
-                    .filter(edge => edge.source === node.id)
+                    .filter(edge => edge.target === node.id)
                     .map(edge => formatSourceTargetEdge(edge)),
                 outputEdges:graph.data.edges
-                    .filter(edge => edge.target === node.id)
+                    .filter(edge => edge.source === node.id)
                     .map(edge => formatSourceTargetEdge(edge))
             }
             Meteor.callAsync("machines.bindRequest", nodeInfo)

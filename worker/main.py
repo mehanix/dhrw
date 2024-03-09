@@ -15,6 +15,7 @@ HEARTBEAT_INTERVAL_SEC = 10
 
 tasks = []
 is_busy = False
+loc = locals()
 
 with open("/etc/hostname") as f:
     CONTAINER_ID = f.readline().strip()
@@ -61,33 +62,29 @@ async def main_loop() -> None:
     '''
     async def consume_work(node_info):
         try:
-            print("CONSUME WORK")
             connection, channel, exchange = await get_connection_channel_exchange()
             queue = await channel.declare_queue(CONTAINER_ID, auto_delete=True,durable=True)
-            print("1")
             # TODO check for collision with locals
+            functionToRun = "unset"
             if node_info["code"] == "START_CODE":
                  functionToRun = start_function
             elif node_info["code"] == "END_CODE":
                 functionToRun =  start_function
+
             else:
-                try:
-                    print("11")
-                    codeToRun = node_info["code"].replace('\\n', '\n')
-#                     print(codeToRun)
-                    code = "import json\ndef a(x):\n    return x"
-                    ex = exec(code, globals(), locals())
-                    print(ex)
-                    print("12")
-                    functionToRun = locals()["a"] # TODO change to function_name
-                    print("14")
-                except e:
-                    print("E", e)
-            print("2")
-            print(functionToRun)
-            input_routing_keys = [f"{node_info["graphId"]}.{edge["targetArgument"]["nodeId"]}.#" for edge in node_info["inputEdges"]]
+                codeToRun = node_info["code"].replace('\\n', '\n')
+                code = "import json\ndef a(x):\n    return x"
+                ex = exec(codeToRun, globals(), loc)
+                print(f"[worker {CONTAINER_ID}]", "exec worked")
+                print(f"[worker {CONTAINER_ID}]", node_info["name"] in loc)
+                functionToRun = loc[node_info["name"]] # TODO change to function_name
+                print(f"[worker {CONTAINER_ID}]", "attr loc worked")
+            print(f"[worker {CONTAINER_ID}]", functionToRun)
+            input_routing_keys = [f"{node_info["graphId"]}.{edge["sourceArgument"]["nodeId"]}.#" for edge in node_info["inputEdges"]]
             output_routing_key = f"{node_info['graphId']}.{node_info['nodeId']}"
-            print("ROUTING KEYS:", input_routing_keys, output_routing_key)
+            print(f"[worker {CONTAINER_ID}]  input edges:", node_info["inputEdges"])
+            print(f"[worker {CONTAINER_ID}]  output edges:", node_info["outputEdges"])
+            print(f"[worker {CONTAINER_ID}]  reads from:", input_routing_keys, "publish to", output_routing_key)
 
             for routing_key in input_routing_keys:
                 await queue.bind(WORKER_EXCHANGE, routing_key=routing_key)
@@ -96,7 +93,7 @@ async def main_loop() -> None:
                 async with queue.iterator() as queue_iter:
                     async for message in queue_iter:
                         msg = json.loads(message.body)
-                        print("[worker input], received input", msg)
+                        print("[worker {CONTAINER_ID}], received input", msg)
 
                         # TODO separate into process to prevent crashing + queue/multiprocessing
                         new_message = functionToRun(msg)
