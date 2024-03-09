@@ -30,14 +30,14 @@ export default function AddGraphModal() {
                 {
                     id: '1',
                     type: 'startNode',
-                    data: { label: 'hi' },
+                    data: { label: 'hi', code:"START_CODE" },
                     position: { x: 20, y: 5 },
 
                 },
                 {
                     id: '2',
                     type: 'endNode',
-                    data: { label: 'hi' },
+                    data: { label: 'hi', code:"END_CODE"  },
                     position: { x: 500, y: 5 },
 
                 },

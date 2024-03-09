@@ -43,13 +43,13 @@ Meteor.startup(() => {
   // Listener
   ch1.consume(queue, Meteor.bindEnvironment((msg) => {
     if (msg !== null) {
-      console.log("[Meteor] Received message:", msg.content.toString(), msg.fields.routingKey);
       const message_object = JSON.parse(msg.content)
       switch (msg.fields.routingKey) {
           case "worker_reply.up":
             Meteor.call("machines.heartbeat", message_object)
             break
           case "worker_reply.down":
+            console.log("[Meteor] Received message:", msg.content.toString(), msg.fields.routingKey);
             Meteor.call("machines.remove", message_object._id)
 
             break
@@ -69,7 +69,7 @@ Meteor.startup(() => {
 })();
 
 export const publishh = async (routingKey, message) => {
-    await workers_channel.publish("workers", routingKey, Buffer.from('{"message":"hi"}'));
+    await workers_channel.publish("workers", routingKey, Buffer.from(message));
 }
 
 export const GitlabApi = new Gitlab({

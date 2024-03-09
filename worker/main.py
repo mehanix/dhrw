@@ -19,12 +19,15 @@ is_busy = False
 with open("/etc/hostname") as f:
     CONTAINER_ID = f.readline().strip()
 
+def start_function(dataBytes):
+    while True:
+        print("sunt in start!", dataBytes)
+
 
 async def main_loop() -> None:
     global is_busy
     async def publish(exchange, message, routing_key):
         await exchange.publish(formatted_message(message), routing_key)
-#         print(f" [workers] {CONTAINER_ID}: Sent ", message)
 
     async def get_connection_channel_exchange():
         connection = await connect(RABBIT_URI)
@@ -46,79 +49,62 @@ async def main_loop() -> None:
         loop = asyncio.get_event_loop()
         tasks.append(loop.create_task(function(*args)))
 
-    async def consume_work2(node_info):
-        connection, channel, exchange = await get_connection_channel_exchange()
-        CONNECTION_TOPIC = f"TEST"
-        while True:
-            '''
-            Each node:
-             - belongs to the workers exchange
+    '''
+    Each node:
+     - belongs to the workers exchange
 
-             Sending function results:
-                - posts messages to the topic with its identifier
+     Sending function results:
+        - posts messages to the topic with its identifier
 
-             Receiving input to process:
-                - has its own queue that subscribes to the topics of its parent nodes with fanout operator (.#)
-            '''
-
+     Receiving input to process:
+        - has its own queue that subscribes to the topics of its parent nodes with fanout operator (.#)
+    '''
+    async def consume_work(node_info):
+        try:
+            print("CONSUME WORK")
+            connection, channel, exchange = await get_connection_channel_exchange()
             queue = await channel.declare_queue(CONTAINER_ID, auto_delete=True,durable=True)
+            print("1")
+            # TODO check for collision with locals
+            if node_info["code"] == "START_CODE":
+                 functionToRun = start_function
+            elif node_info["code"] == "END_CODE":
+                functionToRun =  start_function
+            else:
+                try:
+                    print("11")
+                    codeToRun = node_info["code"].replace('\\n', '\n')
+#                     print(codeToRun)
+                    code = "import json\ndef a(x):\n    return x"
+                    ex = exec(code, globals(), locals())
+                    print(ex)
+                    print("12")
+                    functionToRun = locals()["a"] # TODO change to function_name
+                    print("14")
+                except e:
+                    print("E", e)
+            print("2")
+            print(functionToRun)
+            input_routing_keys = [f"{node_info["graphId"]}.{edge["targetArgument"]["nodeId"]}.#" for edge in node_info["inputEdges"]]
+            output_routing_key = f"{node_info['graphId']}.{node_info['nodeId']}"
+            print("ROUTING KEYS:", input_routing_keys, output_routing_key)
 
-#             ex = exec(function_code.replace('\\n', '\n'), globals(), locals())
+            for routing_key in input_routing_keys:
+                await queue.bind(WORKER_EXCHANGE, routing_key=routing_key)
 
-            await queue.bind(WORKER_EXCHANGE, routing_key=f"{read_from}.#")
-            async with queue.iterator() as queue_iter:
-                async for message in queue_iter:
-                    msg = json.loads(message.body)
-                    print("received ", msg, "from ", read_from)
-                    print(read_from, function_name, function_code)
-                    # Do a lot of stuff with the received message..
-                    # When the 'processing' of the received process is done, a new message is created which needs
-                    # to be published to another queue.
+            while True:
+                async with queue.iterator() as queue_iter:
+                    async for message in queue_iter:
+                        msg = json.loads(message.body)
+                        print("[worker input], received input", msg)
 
-                    # check for collision with locals
-
-                    # separate into process to prevent crashing + queue/multiprocessing
-                    print(function_name in locals())
-                    new_message = locals()[function_name](msg)
-                    # use pydantic pt datatype enforcing!
-                    await publish(exchange, new_message, function_name)
-                    await message.ack()
-            await asyncio.sleep(0.1)
-
-    async def consume_work(read_from, function_name, function_code):
-        connection, channel, exchange = await get_connection_channel_exchange()
-
-        while True:
-            auto_delete = False if read_from == "start" else True
-            queue_name = "start" if read_from == "start" else machine_id + "_in"
-
-            queue = await channel.declare_queue(
-               queue_name,
-               auto_delete=auto_delete,
-               durable=True
-            )
-
-            ex = exec(function_code.replace('\\n', '\n'), globals(), locals())
-
-            await queue.bind(WORKER_EXCHANGE, routing_key=f"{read_from}.#")
-            async with queue.iterator() as queue_iter:
-                async for message in queue_iter:
-                    msg = json.loads(message.body)
-                    print("received ", msg, "from ", read_from)
-                    print(read_from, function_name, function_code)
-                    # Do a lot of stuff with the received message..
-                    # When the 'processing' of the received process is done, a new message is created which needs
-                    # to be published to another queue.
-
-                    # check for collision with locals
-
-                    # separate into process to prevent crashing + queue/multiprocessing
-                    print(function_name in locals())
-                    new_message = locals()[function_name](msg)
-                    # use pydantic pt datatype enforcing!
-                    await publish(exchange, new_message, function_name)
-                    await message.ack()
-            await asyncio.sleep(0.1)
+                        # TODO separate into process to prevent crashing + queue/multiprocessing
+                        new_message = functionToRun(msg)
+                        await publish(exchange, new_message, output_routing_key)
+                        await message.ack()
+                await asyncio.sleep(0.1)
+        except e:
+            print("EXC", e)
 
     async def consume_task():
         global is_busy
@@ -131,24 +117,11 @@ async def main_loop() -> None:
                 async for message in queue_iter:
                     msg = json.loads(message.body)
                     if is_busy == True:
-#                         print(f"[worker {CONTAINER_ID}] is busy, rejecting...")
                         await message.reject(requeue=True)
                     else:
                         print(f"[worker {CONTAINER_ID}] received task:", msg)
-                        # TODO rewrite:
-                        # nicer branching logic
-                        # unique start/end topics per comp graph?
-                        await add_task(consume_work2, msg)
-#                         if len(msg['parents']) == 0:
-#                             await add_task(consume_work, ['start', msg['name'], msg['code']])
-#                         else:
-#                             for parent in msg['parents']:
-#                                 await add_task(consume_work, [parent['name'], msg['name'], msg['code']])
-
+                        await add_task(consume_work, [msg])
                         is_busy = True
-#                         publish(WORKER_EXCHANGE,{
-#
-#                         },"task.node_bound")
                         await message.ack()
 
                 await asyncio.sleep(0.1)

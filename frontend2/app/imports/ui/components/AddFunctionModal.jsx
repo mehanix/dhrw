@@ -38,15 +38,15 @@ export default function AddFunctionModal() {
                         <ModalCloseButton/>
                         <ModalBody>
                             <FormControl>
-                                <FormLabel>Source Link (GitLab)</FormLabel>
+                                <FormLabel>File path</FormLabel>
                                 <Input {...register("gitlabLink")}/>
-                                <FormHelperText>Use raw source links!</FormHelperText>
-                                <FormLabel>Name</FormLabel>
+                                <FormHelperText>local file path in repo</FormHelperText>
+                                <FormLabel>Title</FormLabel>
                                 <Input  {...register("name")}/>
                                 <FormLabel>Description</FormLabel>
                                 <Textarea  {...register("description")} id={"description"} placeholder='Here is a sample placeholder'/>
-                                <Textarea  {...register("inputSchema")} id={"inputSchema"} placeholder='Place input schema here'/>
-                                <Textarea  {...register("outputSchema")} id={"outputSchema"} placeholder='Place output schema here'/>
+                                {/*<Textarea  {...register("inputSchema")} id={"inputSchema"} placeholder='Place input schema here'/>*/}
+                                {/*<Textarea  {...register("outputSchema")} id={"outputSchema"} placeholder='Place output schema here'/>*/}
 
                             </FormControl>
                         </ModalBody>

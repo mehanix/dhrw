@@ -146,6 +146,8 @@ function Flow() {
     // const [edges, setEdges] = useState([]);
 
     const isValidConnection = (connection) => {
+        return true // TODO REmove
+
         const [sourceNode, sourceDataTitle, sourceDataType] = connection.sourceHandle.split('.')
         const [targetNode, targetDataTitle, targetDataType] = connection.targetHandle.split('.')
 

@@ -90,6 +90,7 @@ Meteor.methods({
                 nodeId: node.id,
                 functionId: node.data._id,
                 userId: node.data.userId,
+                code: node.data.code,
                 inputEdges:graph.data.edges
                     .filter(edge => edge.source === node.id)
                     .map(edge => formatSourceTargetEdge(edge)),
@@ -97,8 +98,8 @@ Meteor.methods({
                     .filter(edge => edge.target === node.id)
                     .map(edge => formatSourceTargetEdge(edge))
             }
-
-            Meteor.call("machines.bindRequest", nodeInfo)
+            Meteor.callAsync("machines.bindRequest", nodeInfo)
+            console.log("\n")
         }
     }
 });

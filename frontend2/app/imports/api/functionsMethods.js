@@ -29,6 +29,15 @@ import {PythonShell} from 'python-shell';
         FunctionsCollection.remove(functionId);
     },
 
+    "functions.startWithCsv"(data, batchSize=1) {
+        const dataRows = data.split("\n")
+        const headerRow = dataRows[0]
+        for (let i = 0; i < a.length; i += batchSize) {
+            const batchData = [headerRow, ...dataRows.slice(i, i + batchSize)]
+
+        }
+
+    },
     async 'functions.generateSchemas'(pythonCode) {
         // TODO. For demonstrative purposes. Change to docker container running this snippet.
 

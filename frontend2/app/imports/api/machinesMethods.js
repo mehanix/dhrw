@@ -22,7 +22,7 @@ Meteor.methods({
         },{}, function (err, data, container) {
             if (err) throw err;
         })    .on('container', Meteor.bindEnvironment((container) => {
-            console.log("[docker] created:", container.id)
+            // console.log("[docker] created:", container.id)
         }))
         .on('stream', (stream) => {
             stream.on('data', data => console.log("\n", data.toString()));
@@ -88,9 +88,9 @@ Meteor.methods({
      * The worker that picks it up will send a bindResponse via server_responses.bindResponse
      * which will update the record in the DB.
      * */
-    'machines.bindRequest'([graphId, nodeData]) {
-        console.log("request to bind", graphId, nodeData)
-        // publishh("task.up", {})
+    async 'machines.bindRequest'(nodeData) {
+        // console.log("request to bind", nodeData)
+        await publishh("task.up", JSON.stringify(nodeData))
     },
 
     'machines.getAvailableCount'() {
@@ -108,7 +108,7 @@ Meteor.methods({
         // if not needed/not used, will be cleaned up.
         // is this a good idea?
 
-        const willAdd = (minToAdd / 10 + 1) * 10
+        const willAdd = minToAdd +1
         console.log("[Meteor] adding ", willAdd, "machines")
         for (let i=0; i<willAdd; i++) {
             Meteor.call("machines.create")

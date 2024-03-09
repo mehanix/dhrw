@@ -21,58 +21,65 @@ import { FcDataSheet } from "react-icons/fc";
 
 export default function StartNode({ data }) {
     const { register, handleSubmit, watch, formState: { errors } } = useForm();
-    const onSubmit = handleSubmit((data) => console.log('On Submit: ', data))
+    const onSubmit = handleSubmit(async (data) => {
+        const csvText = await data.file_[0].text();
+        console.log(csvText)
+        Meteor.call("functions.startWithCsv", csvText)
+
+    })
     const watchFeedType = watch("feedType", 'csv'); // you can supply default value as second argument
     const onChange = useCallback((evt) => {
-        console.log(evt.target.value);
+        // console.log(evt.target.value);
     }, []);
 
     return (
         <div className="text-updater-node">
             <Card>
-                <form>
+                <form onSubmit={onSubmit}>
                     <CardBody>
                         <Stack divider={<StackDivider/>} spacing='4'>
                             <Box>
                                 <Heading size='xs' textTransform='uppercase'>
-                                    <Icon as={FcDataSheet} /> Flow Input
+                                    <Icon as={FcDataSheet}/> Flow Input
                                 </Heading>
                                 <Text pt='2' fontSize='sm'>
                                     Feed type
                                 </Text>
-                                <Select  defaultValue={"csv"} {...register("feedType", { required: true })} size="sm" placeholder='Select option'>
+                                <Select defaultValue={"csv"} {...register("feedType", {required: true})} size="sm"
+                                        placeholder='Select option'>
                                     <option value='csv'>File (csv)</option>
                                     <option value='datastream'>Data Stream</option>
                                 </Select>
                             </Box>
                             {watchFeedType === "csv" ?
-                            <Box>
-                                <Heading size='xs' textTransform='uppercase' pb={"10px"}>
-                                    Select file
-                                </Heading>
+                                <Box>
+                                    <Heading size='xs' textTransform='uppercase' pb={"10px"}>
+                                        Select file
+                                    </Heading>
 
-                                <FileUpload
-                                    multiple
-                                    register={register('file_')}
-                                >
-                                    <Button size="sm" leftIcon={<Icon as={FiFile} />}>
-                                        Upload
-                                    </Button>
-                                </FileUpload>
-                                <FormErrorMessage>
-                                    {errors.file_ && errors?.file_.message}
-                                </FormErrorMessage>
-                            </Box> :
-                            <Box>
-                                <Heading size='xs' textTransform='uppercase'>
-                                    Data Stream
-                                </Heading>
-                                <Text pt='2' fontSize='sm'>
-                                    POST data to 192.168.xxx.xxx
-                                </Text>
-                            </Box> }
+                                    <FileUpload
+                                        register={register('file_')}
+                                    >
+                                        <Button size="sm" leftIcon={<Icon as={FiFile}/>}>
+                                            Upload
+                                        </Button>
+                                    </FileUpload>
+                                    <FormErrorMessage>
+                                        {errors.file_ && errors?.file_.message}
+                                    </FormErrorMessage>
+                                </Box> :
+                                <Box>
+                                    <Heading size='xs' textTransform='uppercase'>
+                                        Data Stream
+                                    </Heading>
+                                    <Text pt='2' fontSize='sm'>
+                                        POST data to 192.168.xxx.xxx
+                                    </Text>
+                                </Box>}
                         </Stack>
+                        <button>Submit</button>
                     </CardBody>
+
                 </form>
             </Card>
 
@@ -104,7 +111,6 @@ const FileUpload = (props) => {
     const { ref, ...rest } = register
 
     const handleClick = () => inputRef.current?.click()
-
     return (
         <InputGroup onClick={handleClick}>
             <input
