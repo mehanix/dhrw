@@ -67,13 +67,13 @@ Meteor.methods({
             return  {
                 sourceArgument: {
                     nodeId: edge.source,
-                    function: sourceFunction,
+                    functionId: sourceFunction,
                     name: sourceTitle,
                     datatype: sourceType
                 },
                 targetArgument: {
                     nodeId: edge.target,
-                    function: targetFunction,
+                    functionId: targetFunction,
                     name: targetTitle,
                     datatype: targetType
                 }

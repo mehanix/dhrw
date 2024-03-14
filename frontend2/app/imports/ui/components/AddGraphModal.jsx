@@ -21,23 +21,23 @@ export default function AddGraphModal() {
         register,
         formState: { errors, isSubmitting },
     } = useForm()
-    const setActiveGraphId = React.useContext(GraphEditorContext);
+    const [activeGraphId, setActiveGraphId] = React.useContext(GraphEditorContext);
     function onSubmit(graphData) {
         let graph = {}
         graph.userId = Meteor.userId()
         graph.name = graphData.name
         graph.data = {nodes:[
                 {
-                    id: '1',
+                    id: 'START', //node id
                     type: 'startNode',
-                    data: { label: 'hi', code:"START_CODE" },
+                    data: { _id:"START", code:"START_CODE", userId:this.userId }, //function and user id
                     position: { x: 20, y: 5 },
 
                 },
                 {
-                    id: '2',
+                    id: 'END',
                     type: 'endNode',
-                    data: { label: 'hi', code:"END_CODE"  },
+                    data: { _id:"END", code:"END_CODE", userId:this.userId  },
                     position: { x: 500, y: 5 },
 
                 },

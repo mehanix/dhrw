@@ -25,7 +25,7 @@ export default function ControlPanel({metadata}) {
         <ButtonGroup isAttached variant='outline' spacing='2'>
             <Tag m={"1"} p={"2"} align={"center"}>
                 <TagLeftIcon boxSize='20px' as={TiFlowMerge} />
-                <TagLabel>  <b>Now editing: </b> {metadata.name}</TagLabel>
+                <TagLabel>  <b>Now editing: </b> {metadata.name ?? "Loading..."}</TagLabel>
               </Tag>
             {/*<IconButton aria-label="Save"  icon={<Icon as={IoMdSave}></Icon>}> Save</IconButton>*/}
             <Tag size={"xs"} key={"status"} m={"1"} p={"2"} variant='subtle' colorScheme='cyan'>

@@ -6,6 +6,9 @@ import '/imports/api/graphsMethods';
 import '/imports/api/graphsPublications';
 import '/imports/api/machinesMethods';
 import '/imports/api/machinesPublications';
+import '/imports/api/processedWorkMethods';
+import '/imports/api/processedWorkPublications';
+
 const amqplib = require('amqplib');
 const queue = 'server_responses';
 

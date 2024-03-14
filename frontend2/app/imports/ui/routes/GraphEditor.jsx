@@ -109,7 +109,6 @@ function Flow() {
     const {metadata, nodes, edges, viewport} = useTracker(() => {
 
         const handler = Meteor.subscribe('graphs');
-        const handler2 = Meteor.subscribe('machines');
 
         if (!handler.ready()) {
             return {metadata:null, nodes:[],edges:[],viewport:[]}
@@ -157,9 +156,8 @@ function Flow() {
 
     return (
         <div className="main">
-            <GraphEditorContext.Provider value={setActiveGraphId}>
+            <GraphEditorContext.Provider value={[activeGraphId, setActiveGraphId]}>
                 <NavBar/>
-            </GraphEditorContext.Provider>
             <div className="dndflow">
                 {activeGraphId === null ? <p className="reactflow-wrapper" >Load a graph to start working.</p>:
                     <ReactFlowProvider >
@@ -185,6 +183,8 @@ function Flow() {
                 }
                 <Sidebar />
             </div>
+            </GraphEditorContext.Provider>
+
         </div>
 
     );

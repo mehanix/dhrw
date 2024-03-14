@@ -72,7 +72,7 @@ export default function EndNode({ data }) {
                 </form>
             </Card>
 
-            <Handle type="target" position={Position.Left} id="b" />
+            <Handle type="target" position={Position.Left} id="END.EndCsv.string" />
         </div>
     );
 }

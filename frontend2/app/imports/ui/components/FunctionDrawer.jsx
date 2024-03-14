@@ -49,7 +49,7 @@ const FunctionsList = (props) => {
   if (functions == 0) {
     return <Box p={2}> No functions exist</Box>
   }
-  const functionCards = functions.map((func) => <FunctionCard function={func} />)
+  const functionCards = functions.map((func) => <FunctionCard key={func._id} function={func} />)
   return functionCards
 }
 

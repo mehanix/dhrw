@@ -18,13 +18,15 @@ import { Select } from '@chakra-ui/react'
 import { useForm } from "react-hook-form";
 import {FiFile} from "react-icons/fi";
 import { FcDataSheet } from "react-icons/fc";
+import {GraphEditorContext} from "./GraphEditorContext";
+
 
 export default function StartNode({ data }) {
+    const [activeGraphId, setActiveGraphId] = React.useContext(GraphEditorContext);
     const { register, handleSubmit, watch, formState: { errors } } = useForm();
     const onSubmit = handleSubmit(async (data) => {
         const csvText = await data.file_[0].text();
-        console.log(csvText)
-        Meteor.call("functions.startWithCsv", csvText)
+        Meteor.call("functions.startWithCsv", csvText, activeGraphId)
 
     })
     const watchFeedType = watch("feedType", 'csv'); // you can supply default value as second argument
@@ -83,7 +85,7 @@ export default function StartNode({ data }) {
                 </form>
             </Card>
 
-            <Handle type="source" position={Position.Right} id="b" />
+            <Handle type="source" position={Position.Right} id="START.StartCsv.string" />
         </div>
     );
 }

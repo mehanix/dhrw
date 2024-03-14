@@ -24,7 +24,7 @@ export default function ManageGraphs() {
         </>
     }
     const GraphCard = (props) => {
-        const setActiveGraphId = React.useContext(GraphEditorContext);
+        const [activeGraphId, setActiveGraphId] = React.useContext(GraphEditorContext);
         const graphInfo = props.graphInfo
         const setGraph = () => {
             console.log(props.graphInfo)

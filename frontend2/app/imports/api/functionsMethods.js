@@ -2,6 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import { check } from 'meteor/check';
 import { FunctionsCollection } from '../db/FunctionsCollection';
 import {PythonShell} from 'python-shell';
+import {publishh} from "../../server/main";
 
     Meteor.methods({
     async 'functions.insert'(functionObject) {
@@ -25,18 +26,28 @@ import {PythonShell} from 'python-shell';
         if (!this.userId) {
             throw new Meteor.Error('Not authorized.');
         }
-
+    
         FunctionsCollection.remove(functionId);
     },
 
-    "functions.startWithCsv"(data, batchSize=1) {
-        const dataRows = data.split("\n")
-        const headerRow = dataRows[0]
-        for (let i = 0; i < a.length; i += batchSize) {
-            const batchData = [headerRow, ...dataRows.slice(i, i + batchSize)]
+    async "functions.startWithCsv"(data, graphId, batchSize= 1) {
 
+        const dataLines = data.trim().split("\n")
+        const header = dataLines[0]
+        for (let i = 1; i < dataLines.length; i += batchSize) {
+            const batchWithHeader = [header, ...dataLines.slice(i, i + batchSize)]
+            const msg = {
+                "graphId":graphId,
+                "graphNodeId":"START",
+                "functionId":"START",
+                "batchId":i,
+                "batchData":batchWithHeader.join("\n"),
+                "createdAt":  new Date().getTime()
+            }
+            const recordId = Meteor.call("processed_work.insert", msg)
+            console.log("RAN", recordId)
+            await publishh(`${msg.graphId}.START.INPUT`, recordId)
         }
-
     },
     async 'functions.generateSchemas'(pythonCode) {
         // TODO. For demonstrative purposes. Change to docker container running this snippet.
@@ -54,35 +65,6 @@ import {PythonShell} from 'python-shell';
     async 'functions.fetchCode'(functionFile) {
         const link = `https://gitlab.informatik.uni-wuerzburg.de/api/v4/projects/19733/repository/files/${functionFile}/raw?ref=t_main&private_token=${Meteor.settings.GITLAB_ACCESS_TOKEN}`
         const res = await fetch(link);
-        const functionCode = await res.text();
-        return functionCode
-
-        //
-        // const headers = new Headers();
-        //
-        // const codeRequest = new Request(gitlab_link, {
-        //     headers: headers
-        // }
-        // )
-        // console.log(codeRequest.headers)
-        // const res = await fetch(codeRequest);
-        // const functionCode = await res.text();
-        // console.log(res)
-        // return functionCode
+        return await res.text();
     }
-
-    // 'tasks.setIsChecked'(taskId, isChecked) {
-    //     check(taskId, String);
-    //     check(isChecked, Boolean);
-    //
-    //     if (!this.userId) {
-    //         throw new Meteor.Error('Not authorized.');
-    //     }
-    //
-    //     TasksCollection.update(taskId, {
-    //         $set: {
-    //             isChecked
-    //         }
-    //     });
-    // }
 });
