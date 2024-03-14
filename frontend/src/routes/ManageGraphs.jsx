@@ -5,7 +5,7 @@ import { DeleteIcon, EditIcon } from '@chakra-ui/icons';
 
 const GraphCard = (props) => {
     const graphInfo = props.graphInfo
- return  <Card key={graphInfo.id} width="300px">
+ return  <Card width="300px">
     <CardHeader>
         <Heading size='md'> {graphInfo.name} </Heading>
     </CardHeader>
@@ -28,7 +28,7 @@ const GraphCard = (props) => {
 const GraphsList = (props) => {
     console.log("props", props.graphs);
     const graphs = props.graphs;
-    let graphCards = graphs.map((graph) => <GraphCard graphInfo={graph} />
+    let graphCards = graphs.map((graph) => <GraphCard key={graph._id} graphInfo={graph} />
     )
     return <>
     <Wrap>

@@ -2,9 +2,9 @@ from pymongo import MongoClient
 import time
 
 class WorkerDataPersistence:
-    client = MongoClient("mongodb://127.0.0.1:3001/meteor")
-    db = client.processed_work
-    db.createIndex( { "createdAt": 1 }, {expireAfterSeconds: 3600 } )
+    client = MongoClient('mongodb://127.0.0.1:3001/meteor')
+    db = client.meteor.processed_work
+    print()
 
     async def publish(payload, function_id, batch_id, node_id):
         payload["createdAt"] = time.time()
@@ -14,5 +14,15 @@ class WorkerDataPersistence:
         {"$set":payload}
         )
 
+    def get(id):
+        print(id)
+        try:
+            res = WorkerDataPersistence.db.find_one({"_id":id})
+            print(res)
+            return res
+        except Exception as e:
+            print("exc", e)
+        print("didnt work")
+
     async def get_documents(function_id, batch_id, node_id):
-        return db.find({"_id":f"{function_id}.{batch_id}.{node_id}"})
+        return await db.find({"_id":f"{function_id}.{batch_id}.{node_id}"})

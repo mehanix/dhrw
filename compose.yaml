@@ -53,14 +53,26 @@ services:
 #    networks:
 #      - datahive_net
     
-  worker_1:
+#  worker_1:
+#    build:
+#      context: ./worker
+#      dockerfile: Dockerfile
+#    restart: always
+#    networks:
+#      - datahive_net
+
+  meteor:
     build:
-      context: ./worker
+      context: ./frontend2
       dockerfile: Dockerfile
     restart: always
+    ports:
+      - 3000:3000
+      - 3001:3001
     networks:
       - datahive_net
-
+    volumes:
+      - ./frontend2/app:/app
 ##  worker_2:
 #    build:
 #      context: ./worker
@@ -82,4 +94,7 @@ networks:
     driver: bridge
 
 
-# volume mapping 
+# volume mapping
+
+volumes:
+  app:

@@ -6,6 +6,8 @@ import time
 from aio_pika import DeliveryMode, ExchangeType, Message, connect
 import json
 import time
+import pprint
+
 
 RABBIT_URI = "amqp://guest:guest@rabbitmq/"
 WORKER_EXCHANGE = "workers"
@@ -13,22 +15,36 @@ WORKER_TASK_QUEUE = "tasks"
 SERVER_UPDATE_QUEUE = "server_responses"
 HEARTBEAT_INTERVAL_SEC = 10
 
+from data_persistence import WorkerDataPersistence
 tasks = []
 is_busy = False
 loc = locals()
 
+# db = client.meteor
+# print(db.list_collection_names())
+
 with open("/etc/hostname") as f:
     CONTAINER_ID = f.readline().strip()
-
-def start_function(dataBytes):
-    while True:
-        print("sunt in start!", dataBytes)
-
+# This is the only function that breaks the pattern of 1 message input -> 1 message output
+# Splits user-loaded input into multiple row batches.
+def start_function(received_message):
+    batchSize = received_message["batchSize"]
+    csvLines = received_message["csv"].split("\n")
+    header = csvLines[0]
+    csvLines = csvLines[1:]
+    batches = [lst[i:i + n] for i in range(0, len(csvLines), n)]
+    for b in batches:
+        b.insert(0, x)
+    print("I RAN", batches)
+    return batches
 
 async def main_loop() -> None:
     global is_busy
-    async def publish(exchange, message, routing_key):
+    data_persistence = WorkerDataPersistence()
+
+    async def publish_rmq(exchange, message, routing_key):
         await exchange.publish(formatted_message(message), routing_key)
+
 
     async def get_connection_channel_exchange():
         connection = await connect(RABBIT_URI)
@@ -50,6 +66,13 @@ async def main_loop() -> None:
         loop = asyncio.get_event_loop()
         tasks.append(loop.create_task(function(*args)))
 
+    async def publish_processed_message(payload, node_info):
+        if node_info["code"] == "START_CODE":
+            for batch in payload:
+                data_persistence.publish(batch, node_info["functionId"], node_info["batchId"], node_info["nodeId"])
+                await publish_rmq(exchange, batch, output_routing_key)
+        else:
+            await publish_rmq(exchange, payload, output_routing_key)
     '''
     Each node:
      - belongs to the workers exchange
@@ -68,20 +91,20 @@ async def main_loop() -> None:
             functionToRun = "unset"
             if node_info["code"] == "START_CODE":
                  functionToRun = start_function
+                 input_routing_keys = [f"{node_info['graphId']}.START.INPUT.#"]
+                 output_routing_key = f"{node_info['graphId']}.{node_info['nodeId']}.{node_info['functionId']}"
             elif node_info["code"] == "END_CODE":
                 functionToRun =  start_function
-
+                input_routing_keys = [f"{node_info["graphId"]}.{edge["sourceArgument"]["nodeId"]}.{edge["sourceArgument"]["functionId"]}.#" for edge in node_info["inputEdges"]]
+                output_routing_key = f"{node_info['graphId']}.END.END"
             else:
                 codeToRun = node_info["code"].replace('\\n', '\n')
-                code = "import json\ndef a(x):\n    return x"
                 ex = exec(codeToRun, globals(), loc)
-                print(f"[worker {CONTAINER_ID}]", "exec worked")
-                print(f"[worker {CONTAINER_ID}]", node_info["name"] in loc)
                 functionToRun = loc[node_info["name"]] # TODO change to function_name
-                print(f"[worker {CONTAINER_ID}]", "attr loc worked")
-            print(f"[worker {CONTAINER_ID}]", functionToRun)
-            input_routing_keys = [f"{node_info["graphId"]}.{edge["sourceArgument"]["nodeId"]}.#" for edge in node_info["inputEdges"]]
-            output_routing_key = f"{node_info['graphId']}.{node_info['nodeId']}"
+
+                input_routing_keys = [f"{node_info["graphId"]}.{edge["sourceArgument"]["nodeId"]}.{edge["sourceArgument"]["functionId"]}.#" for edge in node_info["inputEdges"]]
+                output_routing_key = f"{node_info['graphId']}.{node_info['nodeId']}.{node_info['functionId']}"
+
             print(f"[worker {CONTAINER_ID}]  input edges:", node_info["inputEdges"])
             print(f"[worker {CONTAINER_ID}]  output edges:", node_info["outputEdges"])
             print(f"[worker {CONTAINER_ID}]  reads from:", input_routing_keys, "publish to", output_routing_key)
@@ -92,12 +115,17 @@ async def main_loop() -> None:
             while True:
                 async with queue.iterator() as queue_iter:
                     async for message in queue_iter:
-                        msg = json.loads(message.body)
-                        print("[worker {CONTAINER_ID}], received input", msg)
-
+                        try:
+                            print(f"[worker {CONTAINER_ID}] received input!!!", message.body)
+                            mongoEntryId = message.body.decode("utf-8")
+                            batchData = WorkerDataPersistence.get(mongoEntryId)
+                            print(f"[worker {CONTAINER_ID}], received ", batchData)
+                        except Exception as e:
+                            print("failed with", e)
                         # TODO separate into process to prevent crashing + queue/multiprocessing
-                        new_message = functionToRun(msg)
-                        await publish(exchange, new_message, output_routing_key)
+#                         result = functionToRun(msg)
+#                         print(result)
+#                         publish_processed_message(result, node_info)
                         await message.ack()
                 await asyncio.sleep(0.1)
         except e:
@@ -129,7 +157,7 @@ async def main_loop() -> None:
 
         while True:
             await asyncio.sleep(HEARTBEAT_INTERVAL_SEC)
-            await publish(exchange, {
+            await publish_rmq(exchange, {
                 "_id": CONTAINER_ID,
                 "heartbeat": int(time.time()* 1000),
                 "is_busy": is_busy
@@ -161,7 +189,7 @@ async def goodbye() -> None:
         message_body,
         delivery_mode=DeliveryMode.PERSISTENT,
     )
-    await exchange.publish(message, routing_key="worker_reply.down")
+    await exchange.publish_rmq(message, routing_key="worker_reply.down")
 
 
 
