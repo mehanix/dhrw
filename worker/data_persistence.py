@@ -2,7 +2,7 @@ from pymongo import MongoClient
 import time
 
 class WorkerDataPersistence:
-    client = MongoClient('mongodb://127.0.0.1:3001/meteor')
+    client = MongoClient('mongodb://mongo/')
     db = client.meteor.processed_work
     print()
 

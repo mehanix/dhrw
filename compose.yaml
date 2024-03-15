@@ -53,48 +53,43 @@ services:
 #    networks:
 #      - datahive_net
     
-#  worker_1:
-#    build:
-#      context: ./worker
-#      dockerfile: Dockerfile
-#    restart: always
-#    networks:
-#      - datahive_net
+  worker_1:
+    build:
+      context: ./worker
+      dockerfile: Dockerfile
+    restart: always
+    networks:
+      - datahive_net
 
-  meteor:
+  meteorct:
     build:
       context: ./frontend2
       dockerfile: Dockerfile
     restart: always
+    links:
+      - mongo
     ports:
       - 3000:3000
-      - 3001:3001
     networks:
       - datahive_net
     volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
       - ./frontend2/app:/app
-##  worker_2:
-#    build:
-#      context: ./worker
-#      dockerfile: Dockerfile
-#    restart: always
-#    networks:
-#      - datahive_net
-#
-#  worker_3:
-#    build:
-#      context: ./worker
-#      dockerfile: Dockerfile
-#    restart: always
-#    networks:
-#      - datahive_net
-        
+    environment:
+      - MONGO_URL=mongodb://mongo/meteor
+
+  mongo:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./frontend2/app/.meteor/local/db:/data/db
+    networks:
+      - datahive_net
+
 networks:
   datahive_net:
     driver: bridge
 
 
 # volume mapping
-
-volumes:
-  app:

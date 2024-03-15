@@ -12,13 +12,13 @@ import '/imports/api/processedWorkPublications';
 const amqplib = require('amqplib');
 const queue = 'server_responses';
 
+
 const SEED_USERNAME = 'datahive';
 const SEED_PASSWORD = 'example';
 const HEARTBEAT_TIMEOUT_MS = 30000
 
 const conn = await amqplib.connect('amqp://guest:guest@rabbitmq/');
 const ch1 = await conn.createChannel();
-
 await ch1.assertQueue(queue);
 let workers_channel = await conn.createChannel();
 await workers_channel.assertExchange('workers', 'topic');

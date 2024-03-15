@@ -12,6 +12,8 @@ ENV APP_PORT=${APP_PORT:-3000}
 # exposed ports and volumes
 EXPOSE $APP_PORT
 VOLUME ["/app"]
+VOLUME ["/var/run/docker.sock"]
+RUN touch /var/run/docker.sock
 
 # add packages for building NPM modules (required by Meteor)
 RUN DEBIAN_FRONTEND=noninteractive apt-get update
@@ -29,9 +31,11 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get autoremove
 RUN DEBIAN_FRONTEND=noninteractive apt-get clean
 
 # create a non-root user that can write to /usr/local (required by Meteor)
-RUN useradd -mUd ${APP_USER_DIR} ${APP_USER}
-RUN chown -Rh ${APP_USER} /usr/local
-USER ${APP_USER}
+#RUN useradd -mUd ${APP_USER_DIR} ${APP_USER}
+#RUN chown -Rh ${APP_USER} /usr/local
+#RUN chown -Rh ${APP_USER} /var/run/docker.sock
+#
+#USER ${APP_USER}
 
 # install Meteor
 RUN curl https://install.meteor.com/ | sh
@@ -39,4 +43,5 @@ RUN curl https://install.meteor.com/ | sh
 # run Meteor from the app directory
 WORKDIR /app
 
-ENTRYPOINT [ "/usr/local/bin/meteor" ]
+ENTRYPOINT [ "/usr/local/bin/meteor", "--allow-superuser" ]
+
