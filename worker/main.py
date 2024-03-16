@@ -27,16 +27,18 @@ with open("/etc/hostname") as f:
     CONTAINER_ID = f.readline().strip()
 # This is the only function that breaks the pattern of 1 message input -> 1 message output
 # Splits user-loaded input into multiple row batches.
-def start_function(received_message):
-    batchSize = received_message["batchSize"]
-    csvLines = received_message["csv"].split("\n")
-    header = csvLines[0]
-    csvLines = csvLines[1:]
-    batches = [lst[i:i + n] for i in range(0, len(csvLines), n)]
-    for b in batches:
-        b.insert(0, x)
-    print("I RAN", batches)
-    return batches
+def start_function(message):
+    print("in start!", message)
+    return message
+#     batchSize = received_message["batchSize"]
+#     csvLines = received_message["csv"].split("\n")
+#     header = csvLines[0]
+#     csvLines = csvLines[1:]
+#     batches = [lst[i:i + n] for i in range(0, len(csvLines), n)]
+#     for b in batches:
+#         b.insert(0, x)
+#     print("I RAN", batches)
+#     return batches
 
 async def main_loop() -> None:
     global is_busy
@@ -84,6 +86,11 @@ async def main_loop() -> None:
         - has its own queue that subscribes to the topics of its parent nodes with fanout operator (.#)
     '''
     async def consume_work(node_info):
+        # collects batch data. all nodes sending input to this node
+        # must have sent something before the function processes the batch.
+        # Structure: batch_id: {sending node id: mongo entry id}
+        batch_directory = {}
+
         try:
             connection, channel, exchange = await get_connection_channel_exchange()
             queue = await channel.declare_queue(CONTAINER_ID, auto_delete=True,durable=True)
@@ -109,6 +116,8 @@ async def main_loop() -> None:
             print(f"[worker {CONTAINER_ID}]  output edges:", node_info["outputEdges"])
             print(f"[worker {CONTAINER_ID}]  reads from:", input_routing_keys, "publish to", output_routing_key)
 
+            input_count = len(input_routing_keys)
+
             for routing_key in input_routing_keys:
                 await queue.bind(WORKER_EXCHANGE, routing_key=routing_key)
 
@@ -116,10 +125,28 @@ async def main_loop() -> None:
                 async with queue.iterator() as queue_iter:
                     async for message in queue_iter:
                         try:
-                            print(f"[worker {CONTAINER_ID}] received input!!!", message.body)
-                            mongoEntryId = message.body.decode("utf-8")
-                            batchData = WorkerDataPersistence.get(mongoEntryId)
-                            print(f"[worker {CONTAINER_ID}], received ", batchData)
+                            # input received. index it in dictionary. when all input is received, run the function!
+                            print(f"[worker {CONTAINER_ID}] received input!!!", message.body, message.routing_key.split("."))
+                            _,node_id,function_id,batch_id =  message.routing_key.split(".")
+
+                            if batch_id not in batch_directory.keys():
+                                batch_directory[batch_id] = {}
+
+                            batch_directory[batch_id][node_id] = message
+
+                            # if all nodes connected to this node have processed this batch and sent their results
+                            # it means i can run this function now. so extract the arguments and run it!
+#                             if len(batch_directory[batch_id].keys()) == input_count:
+#                                 function_arguments = WorkerDataPersistence.extract_function_arguments(batch_directory[batch_id], node_info["inputEdges"])
+#                                 print(function_arguments)
+                            if len(node_info["inputEdges"]) == 0 and function_id == "INPUT":
+                                # nodes from START.INPUT can be processed immediately. just format and send forward
+                                print(batch_directory[batch_id]['START'])
+                                function_argument = data_persistence.extract_start_input(batch_directory[batch_id]['START'])
+                                function_result = start_function(function_argument)
+
+                            print("func_res", function_result)
+                            data_persistence.package_and_publish(function_result)
                         except Exception as e:
                             print("failed with", e)
                         # TODO separate into process to prevent crashing + queue/multiprocessing

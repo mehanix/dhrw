@@ -8,7 +8,6 @@ class WorkerDataPersistence:
 
     async def publish(payload, function_id, batch_id, node_id):
         payload["createdAt"] = time.time()
-
         return db.insert(
         {"_id":f"{function_id}.{batch_id}.{node_id}"},
         {"$set":payload}
@@ -24,5 +23,17 @@ class WorkerDataPersistence:
             print("exc", e)
         print("didnt work")
 
+    def extract_function_arguments(mongo_id_list, edges_data):
+        print("extracting", mongo_id_list, edges_data)
+
+    def extract_start_input(self, message):
+        id = message.body.decode("utf-8")
+
+        return WorkerDataPersistence.get(id)["batchData"]
+
+    def package_and_publish(self, data):
+        id = message.body.decode("utf-8")
+
+        return WorkerDataPersistence.get(id)["batchData"]
     async def get_documents(function_id, batch_id, node_id):
         return await db.find({"_id":f"{function_id}.{batch_id}.{node_id}"})
