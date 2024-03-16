@@ -28,7 +28,7 @@ with open("/etc/hostname") as f:
 # This is the only function that breaks the pattern of 1 message input -> 1 message output
 # Splits user-loaded input into multiple row batches.
 def start_function(message):
-    print("in start!", message)
+    print("in start!")
     return message
 #     batchSize = received_message["batchSize"]
 #     csvLines = received_message["csv"].split("\n")
@@ -45,7 +45,8 @@ async def main_loop() -> None:
     data_persistence = WorkerDataPersistence()
 
     async def publish_rmq(exchange, message, routing_key):
-        await exchange.publish(formatted_message(message), routing_key)
+        message = formatted_message(message)
+        await exchange.publish(message, routing_key)
 
 
     async def get_connection_channel_exchange():
@@ -56,7 +57,11 @@ async def main_loop() -> None:
         return connection, channel, exchange
 
     def formatted_message(body):
-        message_body = str.encode(json.dumps(body))
+
+        if not isinstance(body, bytes):
+            message_body = str.encode(json.dumps(body))
+        else:
+            message_body = body
 
         message = Message(
             message_body,
@@ -68,13 +73,13 @@ async def main_loop() -> None:
         loop = asyncio.get_event_loop()
         tasks.append(loop.create_task(function(*args)))
 
-    async def publish_processed_message(payload, node_info):
-        if node_info["code"] == "START_CODE":
-            for batch in payload:
-                data_persistence.publish(batch, node_info["functionId"], node_info["batchId"], node_info["nodeId"])
-                await publish_rmq(exchange, batch, output_routing_key)
-        else:
-            await publish_rmq(exchange, payload, output_routing_key)
+#     async def publish_processed_message(payload, node_info):
+#         if node_info["code"] == "START_CODE":
+#             for batch in payload:
+#                 data_persistence.publish(batch, node_info["functionId"], node_info["batchId"], node_info["nodeId"])
+#                 await publish_rmq(exchange, batch, output_routing_key)
+#         else:
+#             await publish_rmq(exchange, payload, output_routing_key)
     '''
     Each node:
      - belongs to the workers exchange
@@ -112,11 +117,19 @@ async def main_loop() -> None:
                 input_routing_keys = [f"{node_info["graphId"]}.{edge["sourceArgument"]["nodeId"]}.{edge["sourceArgument"]["functionId"]}.#" for edge in node_info["inputEdges"]]
                 output_routing_key = f"{node_info['graphId']}.{node_info['nodeId']}.{node_info['functionId']}"
 
-            print(f"[worker {CONTAINER_ID}]  input edges:", node_info["inputEdges"])
-            print(f"[worker {CONTAINER_ID}]  output edges:", node_info["outputEdges"])
+#             print(f"[worker {CONTAINER_ID}]  input edges:", node_info["inputEdges"])
+#             print(f"[worker {CONTAINER_ID}]  output edges:", node_info["outputEdges"])
             print(f"[worker {CONTAINER_ID}]  reads from:", input_routing_keys, "publish to", output_routing_key)
 
             input_count = len(input_routing_keys)
+            msg_skeleton = {
+                   "graphId":node_info['graphId'],
+                   "graphNodeId":node_info['nodeId'],
+                   "functionId":node_info['functionId'],
+                   "batchId":None,
+                   "batchData":None,
+                   "createdAt":None
+             }
 
             for routing_key in input_routing_keys:
                 await queue.bind(WORKER_EXCHANGE, routing_key=routing_key)
@@ -126,7 +139,7 @@ async def main_loop() -> None:
                     async for message in queue_iter:
                         try:
                             # input received. index it in dictionary. when all input is received, run the function!
-                            print(f"[worker {CONTAINER_ID}] received input!!!", message.body, message.routing_key.split("."))
+                            print(f"[worker {CONTAINER_ID}] RECEIVED ", message.body, message.routing_key)
                             _,node_id,function_id,batch_id =  message.routing_key.split(".")
 
                             if batch_id not in batch_directory.keys():
@@ -141,21 +154,26 @@ async def main_loop() -> None:
 #                                 print(function_arguments)
                             if len(node_info["inputEdges"]) == 0 and function_id == "INPUT":
                                 # nodes from START.INPUT can be processed immediately. just format and send forward
-                                print(batch_directory[batch_id]['START'])
+#                                 print(batch_directory[batch_id]['START'])
                                 function_argument = data_persistence.extract_start_input(batch_directory[batch_id]['START'])
                                 function_result = start_function(function_argument)
-
-                            print("func_res", function_result)
-                            data_persistence.package_and_publish(function_result)
+                                processed_batch_msg = dict(msg_skeleton)
+                                processed_batch_msg["batchId"] = batch_id
+                                processed_batch_msg["batchData"] = function_result
+                                processed_batch_msg["createdAt"] = time.time()
+                                mongo_id = data_persistence.package_and_publish(processed_batch_msg)
+                                await publish_rmq(exchange, mongo_id.binary,f"{output_routing_key}.{batch_id}")
+                                print(f"[worker {CONTAINER_ID}] SENT ", mongo_id, processed_batch_msg["batchData"], f"{output_routing_key}.{batch_id}")
+                                await message.ack()
+                                # todo finish acumulare si ack selectiv
                         except Exception as e:
                             print("failed with", e)
                         # TODO separate into process to prevent crashing + queue/multiprocessing
 #                         result = functionToRun(msg)
 #                         print(result)
 #                         publish_processed_message(result, node_info)
-                        await message.ack()
                 await asyncio.sleep(0.1)
-        except e:
+        except Exception as e:
             print("EXC", e)
 
     async def consume_task():

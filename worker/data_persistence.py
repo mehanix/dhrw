@@ -1,5 +1,6 @@
 from pymongo import MongoClient
 import time
+import pickle
 
 class WorkerDataPersistence:
     client = MongoClient('mongodb://mongo/')
@@ -28,12 +29,13 @@ class WorkerDataPersistence:
 
     def extract_start_input(self, message):
         id = message.body.decode("utf-8")
-
         return WorkerDataPersistence.get(id)["batchData"]
 
     def package_and_publish(self, data):
-        id = message.body.decode("utf-8")
+        print("packaging to publish", data)
+        data["batchData"] = pickle.dumps(data["batchData"])
+#         mongo_id = self.publish(data, data["functionId"], data["batchId"], data["graphNodeId"])
+        return WorkerDataPersistence.db.insert_one(data).inserted_id
 
-        return WorkerDataPersistence.get(id)["batchData"]
     async def get_documents(function_id, batch_id, node_id):
         return await db.find({"_id":f"{function_id}.{batch_id}.{node_id}"})

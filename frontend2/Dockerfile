@@ -43,5 +43,5 @@ RUN curl https://install.meteor.com/ | sh
 # run Meteor from the app directory
 WORKDIR /app
 
-ENTRYPOINT [ "/usr/local/bin/meteor", "--allow-superuser" ]
+ENTRYPOINT [ "/usr/local/bin/meteor", "--settings", "settings.json", "--allow-superuser" ]
 

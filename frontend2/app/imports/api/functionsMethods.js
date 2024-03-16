@@ -45,7 +45,6 @@ import {publishh} from "../../server/main";
                 "createdAt":  new Date().getTime()
             }
             const recordId = Meteor.call("processed_work.insert", msg)
-            console.log("RAN", recordId)          //nodeid funid
             await publishh(`${msg.graphId}.START.INPUT.${msg.batchId}`, recordId) // todo schimba input in start
         }
     },
