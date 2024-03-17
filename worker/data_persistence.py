@@ -1,6 +1,6 @@
 from pymongo import MongoClient
 import time
-import pickle
+import dill
 from bson.objectid import ObjectId
 
 class WorkerDataPersistence:
@@ -35,7 +35,7 @@ class WorkerDataPersistence:
 #         batch_mongo_data = WorkerDataPersistence.get.find({"_id": {"$in": batch_mongo_ids}})
 
         for source_node_id,unformatted_mongo_message in batch_messages.items():
-            batch_messages[source_node_id]["batchData"] = pickle.loads(unformatted_mongo_message["batchData"])
+            batch_messages[source_node_id]["batchData"] = dill.loads(unformatted_mongo_message["batchData"])
 
         arguments_dict = {}
         # match source node id to target edge name. double check data types!
@@ -48,8 +48,7 @@ class WorkerDataPersistence:
                 arguments_dict[edge["targetArgument"]["name"]] = matching_data
             else:
                 source_field_name = edge["sourceArgument"]["name"]
-                print(matching_data.model_fields)
-                arguments_dict[edge["targetArgument"]["name"]] = getattr(matching_data, source_field_name)
+                arguments_dict[edge["targetArgument"]["name"]] = matching_data[source_field_name]
 
 #         print("pp",batch_messages, edges_data)
         print("arguments_dict", arguments_dict)
@@ -60,7 +59,7 @@ class WorkerDataPersistence:
         return WorkerDataPersistence.get(id)["batchData"]
 
     def package_and_publish(self, data):
-#         data["batchData"] = pickle.dumps(data["batchData"])
+#         data["batchData"] = dill.dumps(data["batchData"])
         return WorkerDataPersistence.db.insert_one(data).inserted_id
 
     async def get_documents(function_id, batch_id, node_id):

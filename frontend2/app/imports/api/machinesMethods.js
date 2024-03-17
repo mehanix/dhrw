@@ -25,10 +25,15 @@ Meteor.methods({
             // console.log("[docker] created:", container.id)
         }))
         .on('stream', (stream) => {
-            stream.on('data', data => console.log("\n", data.toString()));
+            stream.on('data', data => {
+                if (data.toString().length > 0)
+                    console.log(data.toString())
+
+            });
         })
         .on('data', (data) => {
-            console.log('data', data);
+            if (data.toString().length > 0)
+                console.log(data.toString())
         })
         .on('err', (err) => {
             console.log('err', err);

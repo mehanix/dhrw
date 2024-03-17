@@ -57,7 +57,7 @@ import {publishh} from "../../server/main";
                 "print(json.dumps(output_schema))  # (2)!\n";
 
             console.log("codeeee", pythonCode + schemaSnippet)
-        const messages = await PythonShell.runString(pythonCode + schemaSnippet, null)
+        const messages = await PythonShell.runString(pythonCode + schemaSnippet)
         return messages
     },
 

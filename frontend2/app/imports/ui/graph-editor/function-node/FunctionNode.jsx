@@ -33,7 +33,7 @@ export default function FunctionNode({ data }) {
         const inputSchema = JSON.parse(data.inputSchema)
 
         return Object.keys(inputSchema.properties).map((property, index) => {
-            return <DatatypeBlock functionId={data._id} property={inputSchema.properties[property]} type="target" offset={index * 100} />
+            return <DatatypeBlock functionId={data._id} property={inputSchema.properties[property]} property_id={property} type="target" offset={index * 100} />
         })
     }
 
@@ -42,7 +42,7 @@ export default function FunctionNode({ data }) {
         const outputSchema = JSON.parse(data.outputSchema)
 
         return Object.keys(outputSchema.properties).map((property, index) => {
-            return <DatatypeBlock functionId={data._id} property={outputSchema.properties[property]} type="source" offset={index * 30} />
+            return <DatatypeBlock functionId={data._id} property={outputSchema.properties[property]}  property_id={property} type="source" offset={index * 30} />
         })
     }
 

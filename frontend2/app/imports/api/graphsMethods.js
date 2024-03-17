@@ -62,6 +62,7 @@ Meteor.methods({
         }
         /** Edges have a ton of info in react-flow, we only need these fields for the machines to work */
         const formatSourceTargetEdge = (edge => {
+
             const [sourceFunction, sourceTitle, sourceType] = edge.sourceHandle.split('.')
             const [targetFunction, targetTitle, targetType] = edge.targetHandle.split('.')
             return  {

@@ -10,6 +10,8 @@ services:
       - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmq
     networks:
       - datahive_net
+    logging:
+      driver: none
 
 #  db:
 #    image: postgres
@@ -54,12 +56,12 @@ services:
 #      - datahive_net
     
   worker_1:
-    build:
-      context: ./worker
-      dockerfile: Dockerfile
-    restart: always
-    networks:
-      - datahive_net
+      build:
+        context: ./worker
+        dockerfile: Dockerfile
+      restart: always
+      networks:
+        - datahive_net
 
   meteorct:
     build:
@@ -86,6 +88,8 @@ services:
       - ./frontend2/app/.meteor/local/db:/data/db
     networks:
       - datahive_net
+    logging:
+      driver: none
 
 networks:
   datahive_net:

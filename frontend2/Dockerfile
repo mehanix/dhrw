@@ -9,6 +9,7 @@ ARG APP_USER_DIR=/home/${APP_USER}
 # run environment
 ENV APP_PORT=${APP_PORT:-3000}
 
+
 # exposed ports and volumes
 EXPOSE $APP_PORT
 VOLUME ["/app"]
@@ -18,8 +19,7 @@ RUN touch /var/run/docker.sock
 # add packages for building NPM modules (required by Meteor)
 RUN DEBIAN_FRONTEND=noninteractive apt-get update
 RUN DEBIAN_FRONTEND=noninteractive apt-get -y dist-upgrade
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y curl python3 build-essential ${APP_PACKAGES}
-
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y curl python3 python3-pip build-essential ${APP_PACKAGES}
 
 # install and set the locale (required by Meteor)
 RUN apt-get install -y locales && rm -rf /var/lib/apt/lists/* \
@@ -30,6 +30,7 @@ ENV LANG ${APP_LOCALE}.${APP_CHARSET}
 RUN DEBIAN_FRONTEND=noninteractive apt-get autoremove
 RUN DEBIAN_FRONTEND=noninteractive apt-get clean
 
+
 # create a non-root user that can write to /usr/local (required by Meteor)
 #RUN useradd -mUd ${APP_USER_DIR} ${APP_USER}
 #RUN chown -Rh ${APP_USER} /usr/local
@@ -39,9 +40,9 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get clean
 
 # install Meteor
 RUN curl https://install.meteor.com/ | sh
-
 # run Meteor from the app directory
 WORKDIR /app
+RUN pip install pydantic pandas dill
 
 ENTRYPOINT [ "/usr/local/bin/meteor", "--settings", "settings.json", "--allow-superuser" ]
 
