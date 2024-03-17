@@ -1,13 +1,14 @@
 import asyncio
 import aio_pika
+import sys, os
+import traceback
 
-import sys
 import time
 from aio_pika import DeliveryMode, ExchangeType, Message, connect
 import json
 import time
 import pprint
-
+import pickle
 
 RABBIT_URI = "amqp://guest:guest@rabbitmq/"
 WORKER_EXCHANGE = "workers"
@@ -25,29 +26,24 @@ loc = locals()
 
 with open("/etc/hostname") as f:
     CONTAINER_ID = f.readline().strip()
-# This is the only function that breaks the pattern of 1 message input -> 1 message output
-# Splits user-loaded input into multiple row batches.
-def start_function(message):
-    print("in start!")
+
+async def publish_rmq(exchange, message, routing_key):
+    message = formatted_message(message)
+    await exchange.publish(message, routing_key)
+
+def formatted_message(message_body):
+    if not isinstance(message_body, bytes):
+        message_body = str.encode(json.dumps(message_body))
+
+    message = Message(
+        message_body,
+        delivery_mode=DeliveryMode.PERSISTENT,
+    )
     return message
-#     batchSize = received_message["batchSize"]
-#     csvLines = received_message["csv"].split("\n")
-#     header = csvLines[0]
-#     csvLines = csvLines[1:]
-#     batches = [lst[i:i + n] for i in range(0, len(csvLines), n)]
-#     for b in batches:
-#         b.insert(0, x)
-#     print("I RAN", batches)
-#     return batches
 
 async def main_loop() -> None:
     global is_busy
     data_persistence = WorkerDataPersistence()
-
-    async def publish_rmq(exchange, message, routing_key):
-        message = formatted_message(message)
-        await exchange.publish(message, routing_key)
-
 
     async def get_connection_channel_exchange():
         connection = await connect(RABBIT_URI)
@@ -56,23 +52,20 @@ async def main_loop() -> None:
         exchange = await channel.declare_exchange(WORKER_EXCHANGE, aio_pika.ExchangeType.TOPIC, durable=True, passive=True)
         return connection, channel, exchange
 
-    def formatted_message(body):
-
-        if not isinstance(body, bytes):
-            message_body = str.encode(json.dumps(body))
-        else:
-            message_body = body
-
-        message = Message(
-            message_body,
-            delivery_mode=DeliveryMode.PERSISTENT,
-        )
-        return message
 
     async def add_task(function, args):
         loop = asyncio.get_event_loop()
         tasks.append(loop.create_task(function(*args)))
 
+    def prepare_publish_mongo(node_info, batch_id, unpickled_batch_data):
+        return {
+               "graphId":node_info['graphId'],
+               "graphNodeId":node_info['nodeId'],
+               "functionId":node_info['functionId'],
+               "batchId":batch_id,
+               "batchData":pickle.dumps(unpickled_batch_data),
+               "createdAt":time.time()
+        }
 #     async def publish_processed_message(payload, node_info):
 #         if node_info["code"] == "START_CODE":
 #             for batch in payload:
@@ -111,9 +104,13 @@ async def main_loop() -> None:
                 output_routing_key = f"{node_info['graphId']}.END.END"
             else:
                 codeToRun = node_info["code"].replace('\\n', '\n')
+#                 print(f"[worker {CONTAINER_ID}]  pre exec")
                 ex = exec(codeToRun, globals(), loc)
+#                 print(f"[worker {CONTAINER_ID}]  post exec")
                 functionToRun = loc[node_info["name"]] # TODO change to function_name
-
+#                 print(f"[worker {CONTAINER_ID}]", functionToRun)
+                function_input_type = loc["Input"]
+                function_output_type = loc["Output"]
                 input_routing_keys = [f"{node_info["graphId"]}.{edge["sourceArgument"]["nodeId"]}.{edge["sourceArgument"]["functionId"]}.#" for edge in node_info["inputEdges"]]
                 output_routing_key = f"{node_info['graphId']}.{node_info['nodeId']}.{node_info['functionId']}"
 
@@ -122,14 +119,6 @@ async def main_loop() -> None:
             print(f"[worker {CONTAINER_ID}]  reads from:", input_routing_keys, "publish to", output_routing_key)
 
             input_count = len(input_routing_keys)
-            msg_skeleton = {
-                   "graphId":node_info['graphId'],
-                   "graphNodeId":node_info['nodeId'],
-                   "functionId":node_info['functionId'],
-                   "batchId":None,
-                   "batchData":None,
-                   "createdAt":None
-             }
 
             for routing_key in input_routing_keys:
                 await queue.bind(WORKER_EXCHANGE, routing_key=routing_key)
@@ -149,32 +138,46 @@ async def main_loop() -> None:
 
                             # if all nodes connected to this node have processed this batch and sent their results
                             # it means i can run this function now. so extract the arguments and run it!
-#                             if len(batch_directory[batch_id].keys()) == input_count:
-#                                 function_arguments = WorkerDataPersistence.extract_function_arguments(batch_directory[batch_id], node_info["inputEdges"])
-#                                 print(function_arguments)
                             if len(node_info["inputEdges"]) == 0 and function_id == "INPUT":
-                                # nodes from START.INPUT can be processed immediately. just format and send forward
-#                                 print(batch_directory[batch_id]['START'])
+
                                 function_argument = data_persistence.extract_start_input(batch_directory[batch_id]['START'])
                                 function_result = start_function(function_argument)
-                                processed_batch_msg = dict(msg_skeleton)
-                                processed_batch_msg["batchId"] = batch_id
-                                processed_batch_msg["batchData"] = function_result
-                                processed_batch_msg["createdAt"] = time.time()
-                                mongo_id = data_persistence.package_and_publish(processed_batch_msg)
-                                await publish_rmq(exchange, mongo_id.binary,f"{output_routing_key}.{batch_id}")
-                                print(f"[worker {CONTAINER_ID}] SENT ", mongo_id, processed_batch_msg["batchData"], f"{output_routing_key}.{batch_id}")
+
+                                to_publish = prepare_publish_mongo(node_info, batch_id, function_result)
+                                mongo_id = bytes(str(data_persistence.package_and_publish(to_publish)),"utf-8")
+
+                                await publish_rmq(exchange,mongo_id,f"{output_routing_key}.{batch_id}")
+                                print(f"[worker {CONTAINER_ID} START] SENT ", function_result, f"{output_routing_key}.{batch_id}")
                                 await message.ack()
-                                # todo finish acumulare si ack selectiv
+
+                            elif len(batch_directory[batch_id].keys()) == input_count:
+                                print(f"[worker {CONTAINER_ID}] CAN RUN!!! ")
+                                function_arguments = data_persistence.extract_function_arguments(batch_directory[batch_id], node_info["inputEdges"])
+                                print(f"[worker {CONTAINER_ID}]", function_arguments)
+                                print(f"[worker {CONTAINER_ID}]", function_input_type.model_fields)
+                                input_object = function_input_type.model_validate(function_arguments)
+                                function_result = functionToRun(input_object)
+                                print("I RAN, function result:", function_result)
+
+                                to_publish = prepare_publish_mongo(node_info, batch_id, function_result)
+                                mongo_id = bytes(str(data_persistence.package_and_publish(to_publish)),"utf-8")
+
+                                await publish_rmq(exchange,mongo_id,f"{output_routing_key}.{batch_id}")
+
+                                print(f"[worker {CONTAINER_ID} START] SENT ", function_result, f"{output_routing_key}.{batch_id}")
+                                await message.ack()
                         except Exception as e:
-                            print("failed with", e)
+                            print(traceback.format_exc())
                         # TODO separate into process to prevent crashing + queue/multiprocessing
 #                         result = functionToRun(msg)
 #                         print(result)
 #                         publish_processed_message(result, node_info)
                 await asyncio.sleep(0.1)
         except Exception as e:
-            print("EXC", e)
+            print(traceback.format_exc())
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+            print(exc_type, fname, exc_tb.tb_lineno)
 
     async def consume_task():
         global is_busy
@@ -182,20 +185,23 @@ async def main_loop() -> None:
         await channel.set_qos(10)
         queue = await channel.declare_queue(WORKER_TASK_QUEUE, durable=True)
         await queue.bind(WORKER_EXCHANGE, routing_key=f"task.*")
-        while True:
-            async with queue.iterator() as queue_iter:
-                async for message in queue_iter:
-                    msg = json.loads(message.body)
-                    if is_busy == True:
-                        await message.reject(requeue=True)
-                    else:
-                        print(f"[worker {CONTAINER_ID}] received task:", msg)
-                        await add_task(consume_work, [msg])
-                        is_busy = True
-                        await message.ack()
 
-                await asyncio.sleep(0.1)
+        try:
+            while True:
+                async with queue.iterator() as queue_iter:
+                    async for message in queue_iter:
+                        msg = json.loads(message.body)
+                        if is_busy == True:
+                            await message.reject(requeue=True)
+                        else:
+#                             print(f"[worker {CONTAINER_ID}] received task:", msg)
+                            await add_task(consume_work, [msg])
+                            is_busy = True
+                            await message.ack()
 
+                    await asyncio.sleep(0.1)
+        except Exception as e:
+            print("Exc", e)
     async def publish_heartbeat():
         connection, channel, exchange = await get_connection_channel_exchange()
         global is_busy
@@ -228,15 +234,12 @@ async def goodbye() -> None:
             "heartbeat": time.time()
         }
 
-    message_body = str.encode(json.dumps(message_body))
-
-    message = Message(
-        message_body,
-        delivery_mode=DeliveryMode.PERSISTENT,
-    )
-    await exchange.publish_rmq(message, routing_key="worker_reply.down")
+    await publish_rmq(exchange, message_body, routing_key="worker_reply.down")
 
 
+# only exists because all the graph nodes want pickled bodies. avoiding breaking the pattern.
+def start_function(message):
+    return message
 
 
 if __name__ == "__main__":

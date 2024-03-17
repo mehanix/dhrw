@@ -2,4 +2,3 @@ aio_pika
 pydantic
 pandas
 pymongo
-dill
