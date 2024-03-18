@@ -35,6 +35,7 @@ export default function ControlPanel({metadata}) {
                 <TagLeftIcon boxSize='20px' as={IoIosCloudDone} />
             </>}
                 <TagLabel>Flow is <b>{metadata.status}</b></TagLabel>
+
             </Tag>
             <IconButton aria-label="Deploy" onClick={changeGraphState} m={"1"} icon={<Icon as={IoPlay}></Icon>}> Deploy</IconButton>
 

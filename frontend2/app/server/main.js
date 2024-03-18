@@ -46,10 +46,13 @@ Meteor.startup(() => {
 
   // Listener
   ch1.consume(queue, Meteor.bindEnvironment((msg) => {
+    console.log(msg)
     if (msg !== null) {
       const message_object = JSON.parse(msg.content)
+      console.log(message_object,'\n')
       switch (msg.fields.routingKey) {
           case "worker_reply.up":
+
             Meteor.call("machines.heartbeat", message_object)
             break
           case "worker_reply.down":
@@ -80,34 +83,34 @@ export const GitlabApi = new Gitlab({
   host: 'https://gitlab.informatik.uni-wuerzburg.de/',
   token: Meteor.settings.GITLAB_ACCESS_TOKEN
 });
-// amqplib.connect('amqp://guest:guest@localhost/', (err, conn) => {
-//   if (err) throw err;
-//
-//   // Listener
-//   conn.createChannel((err, ch2) => {
-//     if (err) throw err;
-//
-//     ch2.assertQueue(queue);
-//
-//     ch2.consume(queue, Meteor.bindEnvironment((msg) => {
-//       if (msg !== null) {
-//         console.log("Received message:", msg.content.toString(), msg.fields.routingKey);
-//
-//         switch (msg.fields.routingKey) {
-//           case "worker_reply.up":
-//             Meteor.call("machines.heartbeat", msg.content)
-//             break
-//           case "worker_reply.down":
-//             Meteor.call("machines.remove", msg.content._id)
-//             break
-//           default:
-//             console.log("ERROR, unknown routing key ", msg.fields.routingKey)
-//         }
-//         ch2.ack(msg);
-//       } else {
-//         console.log('Consumer cancelled by server');
-//       }
-//     }));
-//   });
-//
-// });
+amqplib.connect('amqp://guest:guest@rabbitmq/', (err, conn) => {
+  if (err) throw err;
+
+  // Listener
+  conn.createChannel((err, ch2) => {
+    if (err) throw err;
+
+    ch2.assertQueue(queue);
+
+    ch2.consume(queue, Meteor.bindEnvironment((msg) => {
+      if (msg !== null) {
+        console.log("Received message:", msg.content.toString(), msg.fields.routingKey);
+
+        switch (msg.fields.routingKey) {
+          case "worker_reply.up":
+            Meteor.call("machines.heartbeat", msg.content)
+            break
+          case "worker_reply.down":
+            Meteor.call("machines.remove", msg.content._id)
+            break
+          default:
+            console.log("ERROR, unknown routing key ", msg.fields.routingKey)
+        }
+        ch2.ack(msg);
+      } else {
+        console.log('Consumer cancelled by server');
+      }
+    }));
+  });
+
+});

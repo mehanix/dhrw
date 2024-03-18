@@ -36,6 +36,34 @@ Meteor.methods({
         })
     },
 
+    'graph.updateStatus'(_id, status) {
+        console.log(_id, status)
+        return GraphsCollection.update(_id, {
+            $set: {
+                "status": status
+            }
+        })
+    },
+
+    'graph.setNodeStatus'(graphId, nodeId, status) {
+        console.log(graphId,nodeId,status)
+        const graph = GraphsCollection.findOne(graphId)
+        console.log(graph)
+        for (let i = 0; i< graph.data.nodes.length; i++) {
+            const node = graph.data.nodes[i]
+            if (node.id === nodeId) {
+                const key = `data.nodes.${i}.data`
+
+                console.log(key)
+                GraphsCollection.update(graphId, {
+                    $set: {[key]:status}
+                })
+            }
+        }
+
+    },
+
+
     'graph.updateEdges'({_id, edges}) {
         // GraphsCollection.rawCollection().drop();
         if (!this.userId) {
@@ -50,6 +78,8 @@ Meteor.methods({
 
     'graph.golive'(graph) {
         console.log("Going live....")
+        Meteor.call("graph.updateStatus", graph._id, "loading")
+
 
         const availableMachines = Meteor.call("machines.getAvailableCount")
 
@@ -57,7 +87,6 @@ Meteor.methods({
         // start more machines if needed
         if (graph.data.nodes.length > availableMachines) {
             console.log("[Meteor] Not enough machines available. Scaling up!")
-
             Meteor.call("machines.scaleup", graph.data.nodes.length)
         }
         /** Edges have a ton of info in react-flow, we only need these fields for the machines to work */
@@ -101,7 +130,9 @@ Meteor.methods({
                     .map(edge => formatSourceTargetEdge(edge))
             }
             Meteor.callAsync("machines.bindRequest", nodeInfo)
-            console.log("\n")
+            // console.log("\n")
+            Meteor.call("graph.updateStatus", graph._id, "online")
+
         }
     }
 });

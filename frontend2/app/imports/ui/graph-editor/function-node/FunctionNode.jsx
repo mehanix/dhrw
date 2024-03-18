@@ -28,6 +28,22 @@ export default function FunctionNode({ data }) {
         // console.log(evt.target.value);
     }, []);
 
+    const cardColor = (() => {
+        if (data.status == null)
+            return "lightgrey"
+
+        switch (data.status) {
+            case "alive":
+                return "green"
+            case "dead":
+                return "red"
+            case "loading":
+                return "yellow"
+            case "down":
+                return "lightgrey"
+        }
+    })()
+
     const Inputs = () => {
         if (!("inputSchema" in data)) return;
         const inputSchema = JSON.parse(data.inputSchema)
@@ -61,7 +77,8 @@ export default function FunctionNode({ data }) {
                 </HStack>
 
             </NodeToolbar>
-            <Card>
+            <Card style={{"border":"5px solid", "borderColor":cardColor}}>
+
                 <form>
                     <CardBody>
                         <Stack divider={<StackDivider/>} spacing='4'>

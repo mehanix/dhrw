@@ -21,6 +21,7 @@ HEARTBEAT_INTERVAL_SEC = 10
 from data_persistence import WorkerDataPersistence
 tasks = []
 is_busy = False
+graph_id,node_id,function_id = "unset","unset","unset"
 loc = locals()
 
 # db = client.meteor
@@ -44,8 +45,9 @@ with open("/etc/hostname") as f:
 
 async def publish_rmq(exchange, message, routing_key):
     message = formatted_message(message)
-    await exchange.publish(message, routing_key)
-
+    print(message)
+    res = await exchange.publish(message, routing_key)
+    print(res)
 def formatted_message(message_body):
     if not isinstance(message_body, bytes):
         message_body = str.encode(json.dumps(message_body))
@@ -152,7 +154,7 @@ async def main_loop() -> None:
                         try:
                             # input received. index it in dictionary. when all input is received, run the function!
                             print(f"[worker {CONTAINER_ID}] RECEIVED ", message.body, message.routing_key)
-                            _,node_id,function_id,batch_id =  message.routing_key.split(".")
+                            graph_id,node_id,function_id,batch_id =  message.routing_key.split(".")
 
                             if batch_id not in batch_directory.keys():
                                 batch_directory[batch_id] = {}
@@ -233,15 +235,20 @@ async def main_loop() -> None:
             print("Exc", e)
     async def publish_heartbeat():
         connection, channel, exchange = await get_connection_channel_exchange()
-        global is_busy
+        global is_busy, graph_id, function_id, node_id
 
         while True:
             await asyncio.sleep(HEARTBEAT_INTERVAL_SEC)
-            await publish_rmq(exchange, {
-                "_id": CONTAINER_ID,
-                "heartbeat": int(time.time()* 1000),
-                "is_busy": is_busy
-            },
+            message = {
+                      "_id": CONTAINER_ID,
+                      "heartbeat": int(time.time()* 1000),
+                      "is_busy": is_busy
+                  }
+            if is_busy:
+                message["graph_id"] = graph_id
+                message["node_id"] = node_id
+                message["function_id"] = function_id
+            await publish_rmq(exchange, message,
             "worker_reply.up")
 
     await add_task(publish_heartbeat, [])
@@ -264,6 +271,7 @@ async def goodbye() -> None:
         }
 
     await publish_rmq(exchange, message_body, routing_key="worker_reply.down")
+
 
 
 

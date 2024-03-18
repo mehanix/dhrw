@@ -3,6 +3,7 @@ import { check } from 'meteor/check';
 import { MachinesCollection } from '../db/MachinesCollection';
 import Docker from 'dockerode'
 import {publish, publishh} from "../../server/main";
+import {GraphsCollection} from "../db/GraphsCollection";
 
 const docker = new Docker();
 Meteor.methods({
@@ -47,8 +48,15 @@ Meteor.methods({
      * */
     'machines.cleanup'(timestamp) {
         check(timestamp, Number);
+        const query = {heartbeat: {$lt: timestamp}}
+        const affected_machines = MachinesCollection.find(query)
+        affected_machines.map(machine => {
+            Meteor.call('graph.setNodeStatus', machine.graphId, machine.nodeId, "dead")
+            Meteor.call("graph.updateStatus", machine.graphId, "dead")
+        }
+    )
 
-        const removed = MachinesCollection.remove({heartbeat: {$lt: timestamp}});
+        const removed = MachinesCollection.remove(query);
 
         //TODO: run docker to also stop them
         console.log("[Meteor] removed", removed, "machines after running machines.cleanup")
@@ -60,11 +68,14 @@ Meteor.methods({
      * @param machine info about the machine, incl. timestamp and availability status
      */
     'machines.heartbeat'(machine) {
+        console.log("hbt", machine)
         const result = MachinesCollection.upsert(
             {_id:machine._id},
             {$set: {
                 heartbeat:machine.heartbeat,
-                is_busy: machine.is_busy ? 1 : 0 // what is going on here..... bug in either mongo or meteor
+                is_busy: machine.is_busy ? 1 : 0, // what is going on here..... bug in either mongo or meteor,
+                graphId:machine.graph_id,
+                nodeId:machine.node_id
                 }
         })
 
@@ -74,6 +85,11 @@ Meteor.methods({
             // console.log("[Meteor] Machine ", machine._id," sent heartbeat. Is busy:", machine.is_busy)
         }
 
+        if(machine.is_busy) {
+            console.log("aaa")
+
+            Meteor.call('graph.setNodeStatus', machine.graphId, machine.nodeId, "alive")
+        }
     },
 
     /**
@@ -82,6 +98,8 @@ Meteor.methods({
      */
     'machines.remove'(machineId) {
         check(machineId, String);
+        const machine = MachinesCollection.findOne(machineId)
+        Meteor.call('graph.setNodeStatus', machine.graphId, machine.nodeId, "down")
 
         const removed = MachinesCollection.remove(machineId);
         console.log("[Meteor] removed", machineId, "from DB")
