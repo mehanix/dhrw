@@ -51,7 +51,7 @@ Meteor.methods({
         const query = {heartbeat: {$lt: timestamp}}
         const affected_machines = MachinesCollection.find(query)
         affected_machines.map(machine => {
-            Meteor.call('graph.setNodeStatus', machine.graphId, machine.nodeId, "dead")
+            // Meteor.call('graph.setNodeStatus', machine.graphId, machine.nodeId, "dead")
             Meteor.call("graph.updateStatus", machine.graphId, "dead")
         }
     )
@@ -68,7 +68,6 @@ Meteor.methods({
      * @param machine info about the machine, incl. timestamp and availability status
      */
     'machines.heartbeat'(machine) {
-        console.log("hbt", machine)
         const result = MachinesCollection.upsert(
             {_id:machine._id},
             {$set: {
@@ -86,9 +85,9 @@ Meteor.methods({
         }
 
         if(machine.is_busy) {
-            console.log("aaa")
+            // console.log("aaa")
 
-            Meteor.call('graph.setNodeStatus', machine.graphId, machine.nodeId, "alive")
+            // Meteor.call('graph.setNodeStatus', machine.graphId, machine.nodeId, "alive")
         }
     },
 
@@ -99,7 +98,7 @@ Meteor.methods({
     'machines.remove'(machineId) {
         check(machineId, String);
         const machine = MachinesCollection.findOne(machineId)
-        Meteor.call('graph.setNodeStatus', machine.graphId, machine.nodeId, "down")
+        // Meteor.call('graph.setNodeStatus', machine.graphId, machine.nodeId, "down")
 
         const removed = MachinesCollection.remove(machineId);
         console.log("[Meteor] removed", machineId, "from DB")

@@ -45,9 +45,7 @@ with open("/etc/hostname") as f:
 
 async def publish_rmq(exchange, message, routing_key):
     message = formatted_message(message)
-    print(message)
     res = await exchange.publish(message, routing_key)
-    print(res)
 def formatted_message(message_body):
     if not isinstance(message_body, bytes):
         message_body = str.encode(json.dumps(message_body))
@@ -59,7 +57,7 @@ def formatted_message(message_body):
     return message
 
 async def main_loop() -> None:
-    global is_busy
+    global is_busy, graph_id,node_id,function_id
     data_persistence = WorkerDataPersistence()
 
     async def get_connection_channel_exchange():
@@ -135,8 +133,8 @@ async def main_loop() -> None:
 #                 print(f"[worker {CONTAINER_ID}]", functionToRun)
                 function_input_type = loc["Input"]
                 function_output_type = loc["Output"]
-                print("FFF", functionToRun, function_input_type, function_output_type)
-                input_routing_keys = [f"{node_info["graphId"]}.{edge["sourceArgument"]["nodeId"]}.{edge["sourceArgument"]["functionId"]}.#" for edge in node_info["inputEdges"]]
+                print(f"[worker {CONTAINER_ID}] functions", functionToRun, function_input_type, function_output_type)
+                input_routing_keys = list(set([f"{node_info["graphId"]}.{edge["sourceArgument"]["nodeId"]}.{edge["sourceArgument"]["functionId"]}.#" for edge in node_info["inputEdges"]]))
                 output_routing_key = f"{node_info['graphId']}.{node_info['nodeId']}.{node_info['functionId']}"
 
 #             print(f"[worker {CONTAINER_ID}]  input edges:", node_info["inputEdges"])
@@ -181,7 +179,7 @@ async def main_loop() -> None:
                                 await message.ack()
 
                             elif len(batch_directory[batch_id].keys()) == input_count:
-                                print(f"[worker {CONTAINER_ID}] CAN RUN!!! ")
+                                print(f"[worker {CONTAINER_ID}] can call function ")
                                 function_arguments = data_persistence.extract_function_arguments(batch_directory[batch_id], node_info["inputEdges"])
                                 print(f"[worker {CONTAINER_ID}] fun args", function_arguments)
 
@@ -211,7 +209,7 @@ async def main_loop() -> None:
             print(exc_type, fname, exc_tb.tb_lineno)
 
     async def consume_task():
-        global is_busy
+        global is_busy, graph_id,node_id,function_id
         connection, channel, exchange = await get_connection_channel_exchange()
         await channel.set_qos(10)
         queue = await channel.declare_queue(WORKER_TASK_QUEUE, durable=True)
@@ -248,6 +246,7 @@ async def main_loop() -> None:
                 message["graph_id"] = graph_id
                 message["node_id"] = node_id
                 message["function_id"] = function_id
+#             print(f"[worker] {CONTAINER_ID} heartbeat",message["heartbeat"])
             await publish_rmq(exchange, message,
             "worker_reply.up")
 
