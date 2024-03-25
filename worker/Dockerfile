@@ -1,6 +1,5 @@
 FROM python:3
 WORKDIR /app
-COPY connection.py ./
 COPY requirements.txt ./
 COPY wait-for-it.sh ./
 
