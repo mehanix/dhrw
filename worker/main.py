@@ -9,7 +9,7 @@ import time
 from aio_pika import DeliveryMode, ExchangeType, Message, connect
 import json
 import time
-import pprint
+# import pprint
 import dill
 
 RABBIT_URI = "amqp://guest:guest@rabbitmq/"
@@ -46,6 +46,7 @@ with open("/etc/hostname") as f:
 async def publish_rmq(exchange, message, routing_key):
     message = formatted_message(message)
     res = await exchange.publish(message, routing_key)
+
 def formatted_message(message_body):
     if not isinstance(message_body, bytes):
         message_body = str.encode(json.dumps(message_body))
@@ -64,13 +65,14 @@ async def main_loop() -> None:
         connection = await connect(RABBIT_URI)
         channel = await connection.channel()
         await channel.set_qos(prefetch_count=1)
-        exchange = await channel.declare_exchange(WORKER_EXCHANGE, aio_pika.ExchangeType.TOPIC, durable=True, passive=True)
+        exchange = await channel.declare_exchange(
+            WORKER_EXCHANGE, aio_pika.ExchangeType.TOPIC,
+            durable=True, passive=True)
         return connection, channel, exchange
 
 
     async def add_task(function, args):
-        loop = asyncio.get_event_loop()
-        tasks.append(loop.create_task(function(*args)))
+        tasks.append(asyncio.create_task(function(*args)))
 
     def prepare_publish_mongo(node_info, batch_id, unpickled_batch_data):
         print("www", node_info, batch_id, unpickled_batch_data)
@@ -231,6 +233,7 @@ async def main_loop() -> None:
                     await asyncio.sleep(0.1)
         except Exception as e:
             print("Exc", e)
+
     async def publish_heartbeat():
         connection, channel, exchange = await get_connection_channel_exchange()
         global is_busy, graph_id, function_id, node_id
@@ -246,9 +249,8 @@ async def main_loop() -> None:
                 message["graph_id"] = graph_id
                 message["node_id"] = node_id
                 message["function_id"] = function_id
-#             print(f"[worker] {CONTAINER_ID} heartbeat",message["heartbeat"])
-            await publish_rmq(exchange, message,
-            "worker_reply.up")
+            print(f"[worker] {CONTAINER_ID} heartbeat",message["heartbeat"])
+            await publish_rmq(exchange, message, "worker_reply.up")
 
     await add_task(publish_heartbeat, [])
     await add_task(consume_task, [])
@@ -272,16 +274,9 @@ async def goodbye() -> None:
     await publish_rmq(exchange, message_body, routing_key="worker_reply.down")
 
 
-
-
-
 if __name__ == "__main__":
     try:
         asyncio.run(main_loop())
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(main_loop())
-        loop.close()
     finally:
         time.sleep(5)
         asyncio.run(goodbye())
-

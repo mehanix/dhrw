@@ -7,7 +7,7 @@ export const FunctionsCollection = new Mongo.Collection('functions');
 FunctionsCollection.schema = new SimpleSchema({
     name: {type: String},
     description: {type: String},
-    gitlabLink:  {type: String},
+    githubLink:  {type: String},
     inputSchema: {type: String},
     outputSchema: {type: String},
     userId: {type: String} //todo stricter checking

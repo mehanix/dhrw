@@ -39,7 +39,7 @@ export default function AddFunctionModal() {
                         <ModalBody>
                             <FormControl>
                                 <FormLabel>File path</FormLabel>
-                                <Input {...register("gitlabLink")}/>
+                                <Input {...register("githubLink")}/>
                                 <FormHelperText>local file path in repo</FormHelperText>
                                 <FormLabel>Title</FormLabel>
                                 <Input  {...register("name")}/>
