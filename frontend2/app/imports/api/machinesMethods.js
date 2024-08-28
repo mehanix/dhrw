@@ -16,9 +16,9 @@ Meteor.methods({
             throw new Meteor.Error('Not authorized.');
         }
 
-        docker.run('mp-nicoleta-datahive_worker_1', [], null, {
+        docker.run('disi-worker_1', [], null, {
             "HostConfig": {
-                "NetworkMode": "mp-nicoleta-datahive_datahive_net"
+                "NetworkMode": "disi_datahive_net"
             }
         },{}, function (err, data, container) {
             if (err) throw err;
