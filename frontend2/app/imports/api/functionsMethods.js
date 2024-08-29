@@ -31,11 +31,13 @@ import { octokit } from "../../server/main";
         FunctionsCollection.remove(functionId);
     },
 
-    async "functions.startWithCsv"(data, graphId, batchSize= 1) {
-
+    async "functions.startWithCsv"(data, graphId, batchSize) {
         const dataLines = data.trim().split("\n")
         const header = dataLines[0]
-        for (let i = 1; i < dataLines.length; i += batchSize) {
+        i = 1
+        batchSize = Number(batchSize)
+        while (i + batchSize <= dataLines.length) {
+            console.log("aaaaaaaaaaaa")
             const batchWithHeader = [header, ...dataLines.slice(i, i + batchSize)]
             const msg = {
                 "graphId":graphId,
@@ -47,7 +49,24 @@ import { octokit } from "../../server/main";
             }
             const recordId = Meteor.call("processed_work.insert", msg)
             await publishh(`${msg.graphId}.START.INPUT.${msg.batchId}`, recordId) // todo schimba input in start
+ 
+            i+= batchSize
         }
+        // Currently dropping the last batch that might not have enough elements to run if that happens.
+        if (i+batchSize == dataLines.length) {
+            console.log("last batch")
+            const batchWithHeader = [header, ...dataLines.slice(i, i + batchSize)]
+            const msg = {
+                "graphId":graphId,
+                "graphNodeId":"START",
+                "functionId":"START",
+                "batchId":i,
+                "batchData":batchWithHeader.join("\n"),
+                "createdAt":  new Date().getTime()
+            }
+            const recordId = Meteor.call("processed_work.insert", msg)
+            await publishh(`${msg.graphId}.START.INPUT.${msg.batchId}`, recordId) // todo schimba input in start
+         }
     },
     async 'functions.generateSchemas'(pythonCode) {
         // TODO. For demonstrative purposes. Change to docker container running this snippet.

@@ -1,6 +1,6 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { Handle, Position } from 'reactflow';
-import React, {useRef} from 'react'
+import React, { useRef } from 'react'
 const handleStyle = { left: 10 };
 import {
     Card,
@@ -17,17 +17,25 @@ import {
 } from '@chakra-ui/react'
 import { Select } from '@chakra-ui/react'
 import { useForm } from "react-hook-form";
-import {FiFile} from "react-icons/fi";
+import { FiFile } from "react-icons/fi";
 import { FcDataSheet } from "react-icons/fc";
-import {GraphEditorContext} from "./GraphEditorContext";
+import { GraphEditorContext } from "./GraphEditorContext";
 
-
+import {
+    NumberInput,
+    NumberInputField,
+    NumberInputStepper,
+    NumberIncrementStepper,
+    NumberDecrementStepper,
+  } from '@chakra-ui/react'
 export default function StartNode({ data }) {
     const [activeGraphId, setActiveGraphId] = React.useContext(GraphEditorContext);
+    const [batchSize, setBatchSize] = useState(1)
     const { register, handleSubmit, watch, formState: { errors } } = useForm();
     const onSubmit = handleSubmit(async (data) => {
+        console.log("aaa")
         const csvText = await data.file_[0].text();
-        Meteor.call("functions.startWithCsv", csvText, activeGraphId)
+        Meteor.call("functions.startWithCsv", csvText, activeGraphId, batchSize)
 
     })
     const watchFeedType = watch("feedType", 'csv'); // you can supply default value as second argument
@@ -40,39 +48,54 @@ export default function StartNode({ data }) {
             <Card>
                 <form onSubmit={onSubmit}>
                     <CardBody>
-                        <Stack divider={<StackDivider/>} spacing='4'>
+                        <Stack divider={<StackDivider />} spacing='4'>
                             <Box>
                                 <Heading size='xs' textTransform='uppercase'>
-                                    <Icon as={FcDataSheet}/> Flow Input
+                                    <Icon as={FcDataSheet} /> Flow Input
                                 </Heading>
-                        
+
                             </Box>
-        
-                                <Box>
-                                    <Heading size='xs' textTransform='uppercase' pb={"10px"}>
-                                        Upload CSV
-                                    </Heading>
-                                    <HStack>
+
+                            <Box>
+                                <Heading size='xs' textTransform='uppercase' pb={"10px"}>
+                                    Batch Size
+                                </Heading>
+                                <HStack>
+                                    <NumberInput onChange={setBatchSize} value={batchSize} min={1}>
+                                        <NumberInputField />
+                                        <NumberInputStepper>
+                                            <NumberIncrementStepper />
+                                            <NumberDecrementStepper />
+                                        </NumberInputStepper>
+                                    </NumberInput>
+                                </HStack>
+                            </Box>
+
+                            <Box>
+                                <Heading size='xs' textTransform='uppercase' pb={"10px"}>
+                                    Upload CSV
+                                </Heading>
+                                <HStack>
 
                                     <FileUpload
                                         register={register('file_')}
                                     >
-                                        <Button size="sm" padding="5" leftIcon={<Icon as={FiFile}/>}>
+                                        <Button size="sm" padding="5" leftIcon={<Icon as={FiFile} />}>
                                             Upload
-                                        </Button> 
+                                        </Button>
                                     </FileUpload>
-                                    <Button type='submit' padding="5" size="sm" leftIcon={<Icon as={FiFile}/>}>
-                                            Submit
-                                        </Button>  
-                                    </HStack>
+                                    <Button type='submit' padding="5" size="sm" leftIcon={<Icon as={FiFile} />}>
+                                        Submit
+                                    </Button>
+                                </HStack>
 
-                                        {errors.file_ && errors?.file_.message}
-                             
-                                </Box>
+                                {errors.file_ && errors?.file_.message}
+
+                            </Box>
 
                         </Stack>
 
-                
+
                     </CardBody>
 
                 </form>
