@@ -3,6 +3,7 @@ import { check } from 'meteor/check';
 import { FunctionsCollection } from '../db/FunctionsCollection';
 import {PythonShell} from 'python-shell';
 import {publishh} from "../../server/main";
+import { octokit } from "../../server/main";
 
     Meteor.methods({
     async 'functions.insert'(functionObject) {
@@ -12,7 +13,7 @@ import {publishh} from "../../server/main";
         }
         // TODO DO THIS IN A SEPARATE CONTAINER
 
-        const code = await Meteor.callAsync("functions.fetchCode", functionObject.gitlabLink)
+        const code = await Meteor.callAsync("functions.fetchCode", functionObject.githubLink)
         const [input_schema, output_schema] = await Meteor.callAsync("functions.generateSchemas", code)
         functionObject.inputSchema = input_schema
         functionObject.outputSchema = output_schema
@@ -62,8 +63,15 @@ import {publishh} from "../../server/main";
     },
 
     async 'functions.fetchCode'(functionFile) {
-        const link = `https://gitlab.informatik.uni-wuerzburg.de/api/v4/projects/19733/repository/files/${functionFile}/raw?ref=t_main&private_token=${Meteor.settings.GITLAB_ACCESS_TOKEN}`
-        const res = await fetch(link);
-        return await res.text();
+        const { data } = await octokit.rest.repos.getContent({
+            mediaType: {
+                format: "raw",
+            },
+            owner: "mehanix",
+            repo: "disi-function-repo",
+            path: functionFile,
+        });
+
+        return data;
     }
 });

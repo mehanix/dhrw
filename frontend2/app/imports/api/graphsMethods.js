@@ -80,7 +80,6 @@ Meteor.methods({
         console.log("Going live....")
         Meteor.call("graph.updateStatus", graph._id, "loading")
 
-
         const availableMachines = Meteor.call("machines.getAvailableCount")
 
         console.log("[Meteor] Available machines:", availableMachines)

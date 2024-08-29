@@ -72,14 +72,14 @@ function Flow() {
 
             const dataRaw = event.dataTransfer.getData('application/reactflow');
 
-            // Fetch code from Gitlab and add it to the node
+            // Fetch code from Github and add it to the node
 
             // check if the dropped element is valid
             if (typeof dataRaw === 'undefined' || !dataRaw) {
                 return;
             }
             const parsedData = JSON.parse(dataRaw)
-            Meteor.callAsync("functions.fetchCode", parsedData.gitlabLink).then((result) => {
+            Meteor.callAsync("functions.fetchCode", parsedData.githubLink).then((result) => {
                 console.log(result)
                 const functionData = {...parsedData, code:result}
 
