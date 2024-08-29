@@ -249,7 +249,7 @@ async def main_loop() -> None:
                 message["graph_id"] = graph_id
                 message["node_id"] = node_id
                 message["function_id"] = function_id
-            print(f"[worker] {CONTAINER_ID} heartbeat",message["heartbeat"])
+            # print(f"[worker] {CONTAINER_ID} heartbeat",message["heartbeat"])
             await publish_rmq(exchange, message, "worker_reply.up")
 
     await add_task(publish_heartbeat, [])

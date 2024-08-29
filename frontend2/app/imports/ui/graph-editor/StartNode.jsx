@@ -12,7 +12,8 @@ import {
     Stack,
     Box,
     Heading,
-    InputGroup, Button, Icon, FormErrorMessage
+    InputGroup, Button, Icon, FormErrorMessage,
+    HStack
 } from '@chakra-ui/react'
 import { Select } from '@chakra-ui/react'
 import { useForm } from "react-hook-form";
@@ -44,42 +45,34 @@ export default function StartNode({ data }) {
                                 <Heading size='xs' textTransform='uppercase'>
                                     <Icon as={FcDataSheet}/> Flow Input
                                 </Heading>
-                                <Text pt='2' fontSize='sm'>
-                                    Feed type
-                                </Text>
-                                <Select defaultValue={"csv"} {...register("feedType", {required: true})} size="sm"
-                                        placeholder='Select option'>
-                                    <option value='csv'>File (csv)</option>
-                                    <option value='datastream'>Data Stream</option>
-                                </Select>
+                        
                             </Box>
-                            {watchFeedType === "csv" ?
+        
                                 <Box>
                                     <Heading size='xs' textTransform='uppercase' pb={"10px"}>
-                                        Select file
+                                        Upload CSV
                                     </Heading>
+                                    <HStack>
 
                                     <FileUpload
                                         register={register('file_')}
                                     >
-                                        <Button size="sm" leftIcon={<Icon as={FiFile}/>}>
+                                        <Button size="sm" padding="5" leftIcon={<Icon as={FiFile}/>}>
                                             Upload
-                                        </Button>
+                                        </Button> 
                                     </FileUpload>
-                                    <FormErrorMessage>
+                                    <Button type='submit' padding="5" size="sm" leftIcon={<Icon as={FiFile}/>}>
+                                            Submit
+                                        </Button>  
+                                    </HStack>
+
                                         {errors.file_ && errors?.file_.message}
-                                    </FormErrorMessage>
-                                </Box> :
-                                <Box>
-                                    <Heading size='xs' textTransform='uppercase'>
-                                        Data Stream
-                                    </Heading>
-                                    <Text pt='2' fontSize='sm'>
-                                        POST data to 192.168.xxx.xxx
-                                    </Text>
-                                </Box>}
+                             
+                                </Box>
+
                         </Stack>
-                        <button>Submit</button>
+
+                
                     </CardBody>
 
                 </form>
