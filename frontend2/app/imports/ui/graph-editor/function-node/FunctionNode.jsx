@@ -13,12 +13,13 @@ import {
     Box,
     Icon,
     Heading,
-    InputGroup, Button, FormErrorMessage, IconButton, HStack, Tooltip, Divider, VStack
+    InputGroup, Button, FormErrorMessage, IconButton, HStack, Tooltip, Divider, VStack,
+    Spacer
 } from '@chakra-ui/react'
 import { useForm } from "react-hook-form";
 import DatatypeBlock from "./DatatypeBlock";
 import { IoCodeSlashSharp } from "react-icons/io5";
-
+import { EditIcon, ViewIcon } from '@chakra-ui/icons'
 export default function FunctionNode({ data }) {
     const { setNodes } = useReactFlow();
     const { register, handleSubmit, watch, formState: { errors } } = useForm();
@@ -62,30 +63,39 @@ export default function FunctionNode({ data }) {
         })
     }
 
+
     return (
         <div className="text-updater-node">
             <NodeToolbar
                 position={Position.Top}
             >
                 <HStack>
-                    <Tooltip label='Live edit code'>
-                        <IconButton aria-label='Edit' icon={<Icon as={IoCodeSlashSharp} />} hasArrow placement={"top"}/>
+                    <Tooltip label='View code'>
+                        <IconButton onClick={(()=>{alert(data.code)})} aria-label='Edit' icon={<Icon as={IoCodeSlashSharp} />} hasArrow placement={"top"}/>
                     </Tooltip>
-                    {/*<Tooltip label='Remove'>*/}
-                    {/*<IconButton aria-label='Remove' onClick={deleteNodeById} icon={<DeleteIcon />} hasArrow placement={"top"}/>*/}
-                    {/*</Tooltip>*/}
+                    <Tooltip label='Edit function (GH Codespaces)'>
+                        <IconButton onClick={(()=>{
+                            window.open("https://bug-free-space-carnival-wvv6pvqq4rg29wr7.github.dev/", "_blank")
+                            alert("You must reload the function into the repository and readd the node after making changes on GitHub.")})} aria-label='Edit' icon={<Icon as={EditIcon} />} hasArrow placement={"top"}/>
+                    </Tooltip>
                 </HStack>
 
-            </NodeToolbar>
+            </NodeToolbar> 
             <Card style={{"border":"5px solid", "borderColor":cardColor}}>
 
                 <form>
                     <CardBody>
                         <Stack divider={<StackDivider/>} spacing='4'>
                             <Box>
+                                <HStack>
                                 <Heading size='xs' textTransform='uppercase'>
                                     <Icon as={TbMathFunction} />  {data.name}
+                                    
                                 </Heading>
+                                <Spacer/>
+                            
+                                </HStack>
+ 
 
                                 <Text pt='2' fontSize='xs'>
                                     {data.description}

@@ -16,18 +16,18 @@ const handleStyleSource = {
 
 export default function DatatypeBlock ({functionId, property, property_id, offset, type}) {
 
-    return <Card>
+    return <Card variant="elevated">
         <CardHeader>
-            <Text fontSize={'sm'}>
+            <Text fontSize={'md'}>
                 {property.title[0].toLowerCase() + property.title.slice(1)}
             </Text>
-            <Text fontSize='xs' textTransform={'uppercase'}>
+            <Text fontSize='md' textTransform={'uppercase'}>
                 {property.type}
             </Text>
             <Divider/>
             <FormControl pt={"2"}>
-                <FormLabel>Value</FormLabel>
-                <Input  size={"sm"}></Input>
+                {/* <FormLabel>Value</FormLabel> */}
+                <Input  disabled size={"sm"}></Input>
             </FormControl>
         </CardHeader>
         <Handle type={type} style={type === "source" ? handleStyleSource : handleStyleTarget} id={`${functionId}.${property_id}.${property.type}`}  position={type === "source" ? Position.Left : Position.Right}/>
