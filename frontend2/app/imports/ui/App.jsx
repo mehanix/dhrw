@@ -22,21 +22,12 @@ const router = createBrowserRouter([
 
 export const App = () => {
   const user = useTracker(() => Meteor.user());
-
-  const submit = () => {
-    Meteor.logout()
-  }
   return (
     <ChakraProvider>
       <Box h="100%" display={"grid"}>
         {user ? <RouterProvider router={router} /> : <LoginForm/>}
       </Box>
       {/* <div> */}
-
-
-         <form onSubmit={submit} className="login-form">
-          <button type="submit">Log out</button>
-        </form>
 
     </ChakraProvider>
 

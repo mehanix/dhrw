@@ -36,15 +36,7 @@ export default function EndNode({ data }) {
                                 <Heading size='xs' textTransform='uppercase'>
                                     🏁 Flow Output
                                 </Heading>
-                                <Text pt='2' fontSize='sm'>
-                                    Output type
-                                </Text>
-                                <Select  defaultValue={"csv"} {...register("feedType", { required: true })} size="sm" placeholder='Select option'>
-                                    <option value='csv'>File (csv)</option>
-                                    <option value='datastream'>Data Stream</option>
-                                </Select>
                             </Box>
-                            {watchFeedType === "csv" ?
                                 <Box>
                                     <Heading size='xs' textTransform='uppercase' pb={"10px"}>
                                         Download output
@@ -58,15 +50,7 @@ export default function EndNode({ data }) {
                                             Download
                                         </Button>
                                     </FileUpload>
-                                </Box> :
-                                <Box>
-                                    <Heading size='xs' textTransform='uppercase'>
-                                        Data Stream
-                                    </Heading>
-                                    <Text pt='2' fontSize='sm'>
-                                        GET data from 192.168.xxx.xxx
-                                    </Text>
-                                </Box> }
+                                </Box> 
                         </Stack>
                     </CardBody>
                 </form>

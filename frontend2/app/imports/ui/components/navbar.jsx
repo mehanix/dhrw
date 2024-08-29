@@ -6,12 +6,15 @@ import { Avatar, AvatarBadge, AvatarGroup } from '@chakra-ui/react'
 import { PiGraph } from "react-icons/pi";
 import { TbMathFunction } from "react-icons/tb";
 import GraphCollection from './GraphCollection.jsx';
-
+import { useToast } from "@chakra-ui/react";
 import FunctionDrawer from "./FunctionDrawer";
 import AddGraphModal from "./AddGraphModal";
 const NavBar = (props) => {
   const [isOpen, setIsOpen] = React.useState(false);
-
+  const toast = useToast()
+  const logout = () => {
+    Meteor.logout()
+  }
   const toggle = () => setIsOpen(!isOpen);
 
   const GraphMenu = () => <Menu>
@@ -27,29 +30,33 @@ const NavBar = (props) => {
   <MenuList>
     <AddGraphModal setWorkingGraph={props.setWorkingGraph}/>
     <GraphCollection/>
-    <MenuItem icon={<RepeatIcon />}>
+    <MenuItem  onClick={() =>
+        toast({
+          title: 'Saved',
+          description: "Progress saved!",
+          status: 'success',
+          duration: 3000,
+          isClosable: true,
+        })
+      } icon={<RepeatIcon />}>
       Save
     </MenuItem>
   </MenuList>
 </Menu>
 
-const FunctionsMenu = () => <Menu>
+const LogoutMenu = () => <Menu>
 <MenuButton
-  as={Button}
-  aria-label='Functions'
+  as={Avatar}
+  src="" height={5} width={5}
   leftIcon={<Icon as={TbMathFunction} />}
   variant='ghost'
   ml={1}
 > 
-Functions
 </MenuButton>
 <MenuList>
-  <MenuItem icon={<AddIcon />} command='⌘T'>
-    New Function
+  <MenuItem onClick={logout}>
+    Log Out
   </MenuItem>
-  <MenuItem icon={<ExternalLinkIcon />} command='⌘N'>
-    Open Function Repository...
-  </MenuItem> 
 </MenuList>
 </Menu>
 
@@ -58,11 +65,9 @@ Functions
       {/* <Image src={logo} width={120}/>      */}
 
       <GraphMenu/>
-      <FunctionsMenu />
 
       <Spacer />
-      <Avatar src="" height={5} width={5} />
-
+      <LogoutMenu />
   </NavBarContainer>
   );
 };
