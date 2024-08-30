@@ -18,6 +18,7 @@ import { Select } from '@chakra-ui/react'
 import { useForm } from "react-hook-form";
 import {FiFile} from "react-icons/fi";
 import { FcDataSheet } from "react-icons/fc";
+import ResultsModal from '../components/ResultsModal';
 
 export default function EndNode({ data }) {
     const { register, handleSubmit, watch, formState: { errors } } = useForm();
@@ -39,17 +40,9 @@ export default function EndNode({ data }) {
                             </Box>
                                 <Box>
                                     <Heading size='xs' textTransform='uppercase' pb={"10px"}>
-                                        Download output
+                                        View output
                                     </Heading>
-
-                                    <FileUpload
-                                        multiple
-                                        register={register('file_', { validate: validateFiles })}
-                                    >
-                                        <Button size="sm" leftIcon={<Icon as={FiFile} />}>
-                                            Download
-                                        </Button>
-                                    </FileUpload>
+                                    <ResultsModal />
                                 </Box> 
                         </Stack>
                     </CardBody>

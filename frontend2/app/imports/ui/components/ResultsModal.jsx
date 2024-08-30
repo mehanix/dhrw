@@ -8,73 +8,108 @@ import {
 
     useDisclosure
 } from "@chakra-ui/react";
-import {AddIcon} from "@chakra-ui/icons";
-import React from "react";
-import {useForm} from "react-hook-form";
-import {FunctionsCollection} from "../../db/FunctionsCollection";
-import {GraphEditorContext} from "../graph-editor/GraphEditorContext";
+import { AddIcon } from "@chakra-ui/icons";
+import React, { useState } from "react";
+import { useForm } from "react-hook-form";
+import { FunctionsCollection } from "../../db/FunctionsCollection";
+import { GraphEditorContext } from "../graph-editor/GraphEditorContext";
+import { ResultsCollection } from "../../db/ResultsCollection";
+import { useTracker } from 'meteor/react-meteor-data';
+import { FiFile } from "react-icons/fi";
+
+import {
+    Table,
+    Thead,
+    Tbody,
+    Tfoot,
+    Tr,
+    Th,
+    Td,
+    TableCaption,
+    TableContainer,
+  } from '@chakra-ui/react'
+  
 
 export default function ResultsModal() {
     const { isOpen, onOpen, onClose } = useDisclosure()
+    const Rows = (props) => {
+        console.log("results", props.results);
+        const results = props.results;
+        let rows = results.map((result) => <Tr>
+        <Td>{(new Date(result.timestamp * 1000).toDateString()) + ' ' + (new Date(result.timestamp * 1000).toLocaleTimeString()) }</Td>
+        <Td>{result.batchId}</Td>
+        <Td>{result.data}</Td>
+    </Tr>
+        )
+        return <>
+                {rows}
+        </>
+    }
+    const [activeGraphId, setActiveGraphId] = React.useContext(GraphEditorContext);
+    const { results, isLoading } = useTracker(() => {
+        const noDataAvailable = { results: [] };
+        if (!Meteor.user()) {
+            return noDataAvailable;
+        }
+        if (activeGraphId == null) {
+            return noDataAvailable;
+        }
+        const handler = Meteor.subscribe('results', activeGraphId);
+
+        if (!handler.ready()) {
+            return { ...noDataAvailable, isLoading: true };
+        }
+
+        const results = ResultsCollection.find({}).fetch();
+
+        return { results };
+    });
+
+
+
+
     const {
         handleSubmit,
         register,
         formState: { errors, isSubmitting },
     } = useForm()
-    const [activeGraphId, setActiveGraphId] = React.useContext(GraphEditorContext);
-    function onSubmit(graphData) {
-        let graph = {}
-        graph.userId = Meteor.userId()
-        graph.name = graphData.name
-        graph.data = {nodes:[
-                {
-                    id: 'START', //node id
-                    type: 'startNode',
-                    data: { _id:"START", code:"START_CODE", userId:this.userId, fun }, //function and user id
-                    position: { x: 20, y: 5 },
+    function onSubmit() {
 
-                },
-                {
-                    id: 'END',
-                    type: 'endNode',
-                    data: { _id:"END", code:"END_CODE", userId:this.userId  },
-                    position: { x: 500, y: 5 },
-
-                },
-            ],
-        edges:[],
-        viewport:[]
-        }
-        graph.status = "offline"
-        console.log("graph pre insert", graph)
-        Meteor.call('graphs.insert', graph,((err,id) => {
+        Meteor.call('graphs.insert', graph, ((err, id) => {
             setActiveGraphId(id)
             onClose()
         }))
 
     }
+
     return (
         <>
-            <MenuItem icon={<AddIcon />} onClick={onOpen}>
-                New Graph
-            </MenuItem>
-            <Modal isOpen={isOpen} onClose={onClose}>
-                <ModalOverlay/>
+            <Button onClick={onOpen} size="sm" leftIcon={<Icon as={FiFile} />}>
+                View
+            </Button>
+            <Modal size="full" isOpen={isOpen} onClose={onClose}>
+                <ModalOverlay />
                 <form onSubmit={handleSubmit(onSubmit)}>
                     <ModalContent>
-                        <ModalHeader>Add graph</ModalHeader>
-                        <ModalCloseButton/>
+                        <ModalHeader>Function Results</ModalHeader>
+                        <ModalCloseButton />
                         <ModalBody>
-                            <FormControl>
-                                <FormLabel>Name</FormLabel>
-                                <Input {...register("name")}/>
-                            </FormControl>
+                                <TableContainer>
+                                    <Table variant='simple'>
+                                        <TableCaption>Imperial to metric conversion factors</TableCaption>
+                                        <Thead>
+                                            <Tr>
+                                                <Th>Timestamp</Th>
+                                                <Th>First Row</Th>
+                                                <Th>Results</Th>
+                                            </Tr>
+                                        </Thead>
+                                        <Tbody>
+                                            <Rows results={results} />
+                                        </Tbody >
+                                    </Table>
+                                </TableContainer>
                         </ModalBody>
-                        <ModalFooter>
-                            <Button colorScheme='blue' mr={3} type="submit">
-                                Submit
-                            </Button>
-                        </ModalFooter>
                     </ModalContent>
                 </form>
             </Modal>

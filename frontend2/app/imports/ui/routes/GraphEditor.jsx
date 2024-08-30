@@ -116,10 +116,6 @@ function Flow() {
         }
         const loadedGraph = GraphsCollection.find({_id:activeGraphId}).fetch()[0];
 
-        if (activeGraphId != null) {
-            const resultsHandler = Meteor.subscribe('results', activeGraphId);
-        }
-
         MachinesCollection.find({}).fetch(); //for debugging TODO remove
         return {metadata:loadedGraph, nodes:loadedGraph.data.nodes, edges:loadedGraph.data.edges, viewport:loadedGraph.data.viewport}
     }, [activeGraphId])
