@@ -111,7 +111,7 @@ Meteor.methods({
      * which will update the record in the DB.
      * */
     async 'machines.bindRequest'(nodeData) {
-        // console.log("request to bind", nodeData)
+        console.log("request to bind", nodeData)
         await publishh("task.up", JSON.stringify(nodeData))
     },
 

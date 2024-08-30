@@ -30,7 +30,7 @@ export default function AddGraphModal() {
                 {
                     id: 'START', //node id
                     type: 'startNode',
-                    data: { _id:"START", code:"START_CODE", userId:this.userId }, //function and user id
+                    data: { _id:"START", code:"START_CODE", userId:this.userId, fun }, //function and user id
                     position: { x: 20, y: 5 },
 
                 },

@@ -114,6 +114,7 @@ Meteor.methods({
         /** Extracts data necessary for machine to run from node, filters out rendering info */
 
         for (let node of graph.data.nodes) {
+            console.log("Going live:",node.data.name)
             const nodeInfo = {
                 graphId: graph._id,
                 nodeId: node.id,
