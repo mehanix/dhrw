@@ -41,7 +41,7 @@ class WorkerDataPersistence:
 
     def extract_function_arguments(self,batch_messages, edges_data):
         for k,v in batch_messages.items():
-            print("extracting", v.body.decode("utf-8"))
+        #    print("extracting", v.body.decode("utf-8"))
             batch_messages[k] = WorkerDataPersistence.get(ObjectId(v.body.decode("utf-8")))
 #         print("batch messages", batch_messages) # aparent insertul nu merge din pymongo.
 #         batch_mongo_data = WorkerDataPersistence.get.find({"_id": {"$in": batch_mongo_ids}})

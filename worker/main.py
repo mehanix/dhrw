@@ -184,10 +184,10 @@ async def main_loop() -> None:
                                 print(f"[worker {CONTAINER_ID} START] SENT ", function_result, f"{output_routing_key}.{batch_id}")
                                 await message.ack()
 
-                                function_arguments = data_persistence.extract_function_arguments(batch_directory[batch_id], node_info["inputEdges"])
-                                function_result = end_function(function_argument)
-                                print("[[[[[END Result]]]]]:", function_result)
-                                await message.ack()
+                                # function_arguments = data_persistence.extract_function_arguments(batch_directory[batch_id], node_info["inputEdges"])
+                                # function_result = end_function(function_argument)
+                                # print("[[[[[END Result]]]]]:", function_result)
+                                # await message.ack()
 
                             elif len(batch_directory[batch_id].keys()) == input_count:
                                 # print(f"[worker {CONTAINER_ID}] can call function ")

@@ -54,9 +54,6 @@ Meteor.startup(() => {
       const message_object = JSON.parse(msg.content)
       console.log(message_object,'\n')
       switch (msg.fields.routingKey) {
-          case "worker_reply.result":
-            console.log("[RESULT]:", message_object)
-            break
           case "worker_reply.up":
             Meteor.call("machines.heartbeat", message_object)
             break
