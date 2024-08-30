@@ -33,8 +33,9 @@ export default function StartNode({ data }) {
     const [batchSize, setBatchSize] = useState(1)
     const { register, handleSubmit, watch, formState: { errors } } = useForm();
     const onSubmit = handleSubmit(async (data) => {
-        console.log("aaa")
+        console.log("aaa", data.file_[0].name)
         const csvText = await data.file_[0].text();
+    
         Meteor.call("functions.startWithCsv", csvText, activeGraphId, batchSize)
 
     })

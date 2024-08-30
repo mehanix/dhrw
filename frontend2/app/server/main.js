@@ -8,6 +8,7 @@ import '/imports/api/graphsMethods';
 import '/imports/api/graphsPublications';
 import '/imports/api/machinesMethods';
 import '/imports/api/machinesPublications';
+import '/imports/api/resultsPublications';
 import '/imports/api/processedWorkMethods';
 import '/imports/api/processedWorkPublications';
 
@@ -54,7 +55,6 @@ Meteor.startup(() => {
       console.log(message_object,'\n')
       switch (msg.fields.routingKey) {
           case "worker_reply.up":
-
             Meteor.call("machines.heartbeat", message_object)
             break
           case "worker_reply.down":

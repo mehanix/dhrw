@@ -22,7 +22,9 @@ from data_persistence import WorkerDataPersistence
 tasks = []
 is_busy = False
 graph_id,node_id,function_id = "unset","unset","unset"
+g_graph_id, g_batch_id = "a","a"
 loc = locals()
+data_persistence = WorkerDataPersistence()
 
 # db = client.meteor
 # print(db.list_collection_names())
@@ -38,6 +40,7 @@ def start_function(message):
     return StartOutput(StartCsv=message)
 
 def end_function(input:EndInput):
+    WorkerDataPersistence.publish_results(input, g_graph_id, g_batch_id)
     return input.EndCsv
 
 with open("/etc/hostname") as f:
@@ -59,7 +62,6 @@ def formatted_message(message_body):
 
 async def main_loop() -> None:
     global is_busy, graph_id,node_id,function_id
-    data_persistence = WorkerDataPersistence()
 
     async def get_connection_channel_exchange():
         connection = await connect(RABBIT_URI)
@@ -106,6 +108,7 @@ async def main_loop() -> None:
         - has its own queue that subscribes to the topics of its parent nodes with fanout operator (.#)
     '''
     async def consume_work(node_info):
+        global g_graph_id, g_batch_id
         # collects batch data. all nodes sending input to this node
         # must have sent something before the function processes the batch.
         # Structure: batch_id: {sending node id: mongo entry id}
@@ -135,7 +138,7 @@ async def main_loop() -> None:
 #                 print(f"[worker {CONTAINER_ID}]", functionToRun)
                 function_input_type = loc["Input"]
                 function_output_type = loc["Output"]
-                print(f"[worker {CONTAINER_ID}] functions", functionToRun, function_input_type, function_output_type)
+                print(f"[worker {CONTAINER_ID}] functions", functionToRun, node_info["name"])
                 input_routing_keys = list(set([f"{node_info["graphId"]}.{edge["sourceArgument"]["nodeId"]}.{edge["sourceArgument"]["functionId"]}.#" for edge in node_info["inputEdges"]]))
                 output_routing_key = f"{node_info['graphId']}.{node_info['nodeId']}.{node_info['functionId']}"
 
@@ -155,7 +158,8 @@ async def main_loop() -> None:
                             # input received. index it in dictionary. when all input is received, run the function!
                             print(f"[worker {CONTAINER_ID}] RECEIVED ", message.body, message.routing_key)
                             graph_id,node_id,function_id,batch_id =  message.routing_key.split(".")
-
+                            g_graph_id = graph_id
+                            g_batch_id = batch_id
                             if batch_id not in batch_directory.keys():
                                 batch_directory[batch_id] = {}
 
@@ -180,23 +184,30 @@ async def main_loop() -> None:
                                 print(f"[worker {CONTAINER_ID} START] SENT ", function_result, f"{output_routing_key}.{batch_id}")
                                 await message.ack()
 
-                            elif len(batch_directory[batch_id].keys()) == input_count:
-                                print(f"[worker {CONTAINER_ID}] can call function ")
-                                function_arguments = data_persistence.extract_function_arguments(batch_directory[batch_id], node_info["inputEdges"])
-                                print(f"[worker {CONTAINER_ID}] fun args", function_arguments)
+                                # function_arguments = data_persistence.extract_function_arguments(batch_directory[batch_id], node_info["inputEdges"])
+                                # function_result = end_function(function_argument)
+                                # print("[[[[[END Result]]]]]:", function_result)
+                                # await message.ack()
 
-                                print(f"[worker {CONTAINER_ID}] function_input_type", function_input_type)
+                            elif len(batch_directory[batch_id].keys()) == input_count:
+                                # print(f"[worker {CONTAINER_ID}] can call function ")
+                                function_arguments = data_persistence.extract_function_arguments(batch_directory[batch_id], node_info["inputEdges"])
+                                # print(f"[worker {CONTAINER_ID}] fun args", function_arguments)
+
+                                # print(f"[worker {CONTAINER_ID}] function_input_type", function_input_type)
                                 input_object = function_input_type.model_validate(function_arguments)
                                 function_result = functionToRun(input_object)
-                                print("I RAN, function result:", function_result)
+                                # print("I RAN, function result:", function_result)
 
                                 to_publish = prepare_publish_mongo(node_info, batch_id, function_result)
                                 mongo_id = bytes(str(data_persistence.package_and_publish(to_publish)),"utf-8")
 
                                 await publish_rmq(exchange,mongo_id,f"{output_routing_key}.{batch_id}")
 
-                                print(f"[worker {CONTAINER_ID} END] SENT ", function_result, f"{output_routing_key}.{batch_id}")
+                                print(f"[worker {CONTAINER_ID} INTERMEDIATE] SENT ", function_result, f"{output_routing_key}.{batch_id}")
                                 await message.ack()
+                            else:
+                                print("something weird happened")
                         except Exception as e:
                             print(traceback.format_exc())
                         # TODO separate into process to prevent crashing + queue/multiprocessing
