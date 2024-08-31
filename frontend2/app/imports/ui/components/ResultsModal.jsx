@@ -16,6 +16,7 @@ import { GraphEditorContext } from "../graph-editor/GraphEditorContext";
 import { ResultsCollection } from "../../db/ResultsCollection";
 import { useTracker } from 'meteor/react-meteor-data';
 import { FiFile } from "react-icons/fi";
+import { DeleteIcon } from '@chakra-ui/icons';
 
 import {
     Table,
@@ -38,12 +39,18 @@ export default function ResultsModal() {
         let rows = results.sort(function (x, y) {
             return y.timestamp - x.timestamp;
         }).map((result) => <Tr>
-                <Td>{(new Date(result.timestamp * 1000).toDateString()) + ' ' + (new Date(result.timestamp * 1000).toLocaleTimeString())}</Td>
-                <Td>{result.batchId}</Td>
-                <Td>
-                    {result.data.length > 5000 ? <img src={"data:image/png;base64, " + result.data} /> : <>{result.data}</>}
-                </Td>
-            </Tr>
+            <Td>{(new Date(result.timestamp * 1000).toDateString()) + ' ' + (new Date(result.timestamp * 1000).toLocaleTimeString())}</Td>
+            <Td>{result.batchId}</Td>
+            <Td>
+                {result.data.length > 5000 ? <img src={"data:image/png;base64, " + result.data} /> : <>{result.data}</>}
+            </Td>
+            <Td>
+                <IconButton onClick={() => {
+                    console.log("AA", result._id)
+                    Meteor.call('results.remove', result._id)
+                }} icon={<DeleteIcon />} variant='solid' colorScheme='red' />
+            </Td>
+        </Tr>
         )
 
         return <>{rows}</>
@@ -105,6 +112,7 @@ export default function ResultsModal() {
                                             <Th>Timestamp</Th>
                                             <Th>First Row</Th>
                                             <Th>Results</Th>
+                                            <Th>Actions</Th>
                                         </Tr>
                                     </Thead>
                                     <Tbody>

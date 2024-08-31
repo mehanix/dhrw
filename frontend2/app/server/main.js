@@ -9,6 +9,7 @@ import '/imports/api/graphsPublications';
 import '/imports/api/machinesMethods';
 import '/imports/api/machinesPublications';
 import '/imports/api/resultsPublications';
+import '/imports/api/resultsMethods';
 import '/imports/api/processedWorkMethods';
 import '/imports/api/processedWorkPublications';
 
