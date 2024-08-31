@@ -16,6 +16,7 @@ import { GraphEditorContext } from "../graph-editor/GraphEditorContext";
 import { ResultsCollection } from "../../db/ResultsCollection";
 import { useTracker } from 'meteor/react-meteor-data';
 import { FiFile } from "react-icons/fi";
+import { DeleteIcon } from '@chakra-ui/icons';
 
 import {
     Table,
@@ -27,23 +28,32 @@ import {
     Td,
     TableCaption,
     TableContainer,
-  } from '@chakra-ui/react'
-  
+} from '@chakra-ui/react'
+
 
 export default function ResultsModal() {
     const { isOpen, onOpen, onClose } = useDisclosure()
     const Rows = (props) => {
         console.log("results", props.results);
         const results = props.results;
-        let rows = results.map((result) => <Tr>
-        <Td>{(new Date(result.timestamp * 1000).toDateString()) + ' ' + (new Date(result.timestamp * 1000).toLocaleTimeString()) }</Td>
-        <Td>{result.batchId}</Td>
-        <Td>{result.data}</Td>
-    </Tr>
+        let rows = results.sort(function (x, y) {
+            return y.timestamp - x.timestamp;
+        }).map((result) => <Tr>
+            <Td>{(new Date(result.timestamp * 1000).toDateString()) + ' ' + (new Date(result.timestamp * 1000).toLocaleTimeString())}</Td>
+            <Td>{result.batchId}</Td>
+            <Td>
+                {result.data.length > 5000 ? <img src={"data:image/png;base64, " + result.data} /> : <>{result.data}</>}
+            </Td>
+            <Td>
+                <IconButton onClick={() => {
+                    console.log("AA", result._id)
+                    Meteor.call('results.remove', result._id)
+                }} icon={<DeleteIcon />} variant='solid' colorScheme='red' />
+            </Td>
+        </Tr>
         )
-        return <>
-                {rows}
-        </>
+
+        return <>{rows}</>
     }
     const [activeGraphId, setActiveGraphId] = React.useContext(GraphEditorContext);
     const { results, isLoading } = useTracker(() => {
@@ -94,21 +104,22 @@ export default function ResultsModal() {
                         <ModalHeader>Function Results</ModalHeader>
                         <ModalCloseButton />
                         <ModalBody>
-                                <TableContainer>
-                                    <Table variant='simple'>
-                                        <TableCaption>Imperial to metric conversion factors</TableCaption>
-                                        <Thead>
-                                            <Tr>
-                                                <Th>Timestamp</Th>
-                                                <Th>First Row</Th>
-                                                <Th>Results</Th>
-                                            </Tr>
-                                        </Thead>
-                                        <Tbody>
-                                            <Rows results={results} />
-                                        </Tbody >
-                                    </Table>
-                                </TableContainer>
+                            <TableContainer>
+                                <Table variant='simple'>
+                                    <TableCaption></TableCaption>
+                                    <Thead>
+                                        <Tr>
+                                            <Th>Timestamp</Th>
+                                            <Th>First Row</Th>
+                                            <Th>Results</Th>
+                                            <Th>Actions</Th>
+                                        </Tr>
+                                    </Thead>
+                                    <Tbody>
+                                        <Rows results={results} />
+                                    </Tbody >
+                                </Table>
+                            </TableContainer>
                         </ModalBody>
                     </ModalContent>
                 </form>

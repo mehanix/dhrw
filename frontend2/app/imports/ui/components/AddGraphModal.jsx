@@ -14,6 +14,10 @@ import {useForm} from "react-hook-form";
 import {FunctionsCollection} from "../../db/FunctionsCollection";
 import {GraphEditorContext} from "../graph-editor/GraphEditorContext";
 
+
+
+
+
 export default function AddGraphModal() {
     const { isOpen, onOpen, onClose } = useDisclosure()
     const {

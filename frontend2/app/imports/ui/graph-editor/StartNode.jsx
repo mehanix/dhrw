@@ -20,22 +20,33 @@ import { useForm } from "react-hook-form";
 import { FiFile } from "react-icons/fi";
 import { FcDataSheet } from "react-icons/fc";
 import { GraphEditorContext } from "./GraphEditorContext";
-
+import { useToast } from '@chakra-ui/react'
 import {
     NumberInput,
     NumberInputField,
     NumberInputStepper,
     NumberIncrementStepper,
     NumberDecrementStepper,
-  } from '@chakra-ui/react'
+} from '@chakra-ui/react'
 export default function StartNode({ data }) {
+    const toast = useToast()
     const [activeGraphId, setActiveGraphId] = React.useContext(GraphEditorContext);
     const [batchSize, setBatchSize] = useState(1)
     const { register, handleSubmit, watch, formState: { errors } } = useForm();
     const onSubmit = handleSubmit(async (data) => {
         console.log("aaa", data.file_[0].name)
         const csvText = await data.file_[0].text();
-    
+        const examplePromise = new Promise((resolve, reject) => {
+            setTimeout(() => resolve(200), 3000)
+        })
+
+        // Will display the loading toast until the promise is either resolved
+        // or rejected.
+        toast.promise(examplePromise, {
+            success: { title: 'Done!', description: 'Results computed' },
+            error: { title: 'Promise rejected', description: 'Something wrong' },
+            loading: { title: 'Processing data...', description: 'Please wait!' },
+        })
         Meteor.call("functions.startWithCsv", csvText, activeGraphId, batchSize)
 
     })
