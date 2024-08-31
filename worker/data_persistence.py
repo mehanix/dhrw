@@ -9,7 +9,7 @@ class WorkerDataPersistence:
     results_db = client.meteor.results
 
     def publish_results(data, graph_id, batch_id):
-        print("To Send To Mongo:", data, graph_id, batch_id)
+        print("To Send To Mongo:", data.EndCsv[:100], graph_id, batch_id)
         print(WorkerDataPersistence.client, WorkerDataPersistence.client.meteor, WorkerDataPersistence.client.meteor.results)
         message = {
             "userId":"DYSNEQwkYuAfNj2Wu",
@@ -18,7 +18,7 @@ class WorkerDataPersistence:
             "timestamp":time.time(),
             "data":str(data.EndCsv)
         }
-        print("MSG", message)
+        print("MSG sending")
         res = WorkerDataPersistence.results_db.insert_one(message)
         print("insert res:", res)
 

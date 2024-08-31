@@ -27,23 +27,26 @@ import {
     Td,
     TableCaption,
     TableContainer,
-  } from '@chakra-ui/react'
-  
+} from '@chakra-ui/react'
+
 
 export default function ResultsModal() {
     const { isOpen, onOpen, onClose } = useDisclosure()
     const Rows = (props) => {
         console.log("results", props.results);
         const results = props.results;
-        let rows = results.map((result) => <Tr>
-        <Td>{(new Date(result.timestamp * 1000).toDateString()) + ' ' + (new Date(result.timestamp * 1000).toLocaleTimeString()) }</Td>
-        <Td>{result.batchId}</Td>
-        <Td>{result.data}</Td>
-    </Tr>
+        let rows = results.sort(function (x, y) {
+            return y.timestamp - x.timestamp;
+        }).map((result) => <Tr>
+                <Td>{(new Date(result.timestamp * 1000).toDateString()) + ' ' + (new Date(result.timestamp * 1000).toLocaleTimeString())}</Td>
+                <Td>{result.batchId}</Td>
+                <Td>
+                    {result.data.length > 5000 ? <img src={"data:image/png;base64, " + result.data} /> : <>{result.data}</>}
+                </Td>
+            </Tr>
         )
-        return <>
-                {rows}
-        </>
+
+        return <>{rows}</>
     }
     const [activeGraphId, setActiveGraphId] = React.useContext(GraphEditorContext);
     const { results, isLoading } = useTracker(() => {
@@ -94,21 +97,21 @@ export default function ResultsModal() {
                         <ModalHeader>Function Results</ModalHeader>
                         <ModalCloseButton />
                         <ModalBody>
-                                <TableContainer>
-                                    <Table variant='simple'>
-                                        <TableCaption>Imperial to metric conversion factors</TableCaption>
-                                        <Thead>
-                                            <Tr>
-                                                <Th>Timestamp</Th>
-                                                <Th>First Row</Th>
-                                                <Th>Results</Th>
-                                            </Tr>
-                                        </Thead>
-                                        <Tbody>
-                                            <Rows results={results} />
-                                        </Tbody >
-                                    </Table>
-                                </TableContainer>
+                            <TableContainer>
+                                <Table variant='simple'>
+                                    <TableCaption></TableCaption>
+                                    <Thead>
+                                        <Tr>
+                                            <Th>Timestamp</Th>
+                                            <Th>First Row</Th>
+                                            <Th>Results</Th>
+                                        </Tr>
+                                    </Thead>
+                                    <Tbody>
+                                        <Rows results={results} />
+                                    </Tbody >
+                                </Table>
+                            </TableContainer>
                         </ModalBody>
                     </ModalContent>
                 </form>
