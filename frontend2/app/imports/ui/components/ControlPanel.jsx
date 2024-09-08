@@ -3,7 +3,7 @@ import {Panel} from "reactflow";
 import React from 'react';
 import { IoMdSave } from "react-icons/io";
 import {AddIcon} from "@chakra-ui/icons";
-import { IoPlay } from "react-icons/io5";
+import { IoPlay, IoStop } from "react-icons/io5";
 import { IoCloudOffline } from "react-icons/io5";
 import { IoIosCloudDone } from "react-icons/io";
 import { TiFlowMerge } from "react-icons/ti";
@@ -17,9 +17,13 @@ export default function ControlPanel({metadata}) {
     }
 
     const changeGraphState = () => {
-        Meteor.call("graph.golive", metadata)
-         console.log("going live......")
-        // Meteor.call("machines.create")
+        if (metadata.status === "offline"){
+            Meteor.call("graph.golive", metadata)
+            console.log("going live......")
+        } else {
+            Meteor.call("graph.godown", metadata)
+            console.log("going down......")
+        }
     }
     return <Panel position="top-center"><Card>
         <ButtonGroup isAttached variant='outline' spacing='2'>
@@ -37,7 +41,7 @@ export default function ControlPanel({metadata}) {
                 <TagLabel>Flow is <b>{metadata.status}</b></TagLabel>
 
             </Tag>
-            <IconButton aria-label="Deploy" onClick={changeGraphState} m={"1"} icon={<Icon as={IoPlay}></Icon>}> Deploy</IconButton>
+            <IconButton aria-label="Deploy" onClick={changeGraphState} m={"1"} icon={<Icon as={(metadata.status === "offline" ? IoPlay: IoStop)}></Icon>}> Deploy</IconButton>
 
             {/*<Tag size={"xs"} key={"status"} m={"1"} p={"2"} variant='subtle' colorScheme='cyan'>*/}
             {/*    <TagLeftIcon boxSize='12px' as={AddIcon} />*/}

@@ -9,7 +9,8 @@ MachinesCollection.schema = new SimpleSchema({
     nodeId:{type: String, optional:true},
     functionCode:{type: String, optional:true},
     heartbeat:{type: Number},
-    is_busy:{type: Number}
+    is_busy:{type: Number},
+    containerId:{type:String}
 });
 
 MachinesCollection.attachSchema(MachinesCollection.schema, {transform: true});
