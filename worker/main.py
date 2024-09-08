@@ -25,7 +25,7 @@ graph_id,node_id,function_id = "unset","unset","unset"
 g_graph_id, g_batch_id = "a","a"
 loc = locals()
 data_persistence = WorkerDataPersistence()
-
+CONTAINER_ID = "unset"
 # db = client.meteor
 # print(db.list_collection_names())
 
@@ -108,7 +108,7 @@ async def main_loop() -> None:
         - has its own queue that subscribes to the topics of its parent nodes with fanout operator (.#)
     '''
     async def consume_work(node_info):
-        global g_graph_id, g_batch_id
+        global g_graph_id, g_batch_id, CONTAINER_ID
         # collects batch data. all nodes sending input to this node
         # must have sent something before the function processes the batch.
         # Structure: batch_id: {sending node id: mongo entry id}
@@ -240,6 +240,8 @@ async def main_loop() -> None:
                             await add_task(consume_work, [msg])
                             is_busy = True
                             await message.ack()
+                            await goodbye()
+
 
                     await asyncio.sleep(0.1)
         except Exception as e:
@@ -247,17 +249,18 @@ async def main_loop() -> None:
 
     async def publish_heartbeat():
         connection, channel, exchange = await get_connection_channel_exchange()
-        global is_busy, graph_id, function_id, node_id
+        global is_busy, g_graph_id, function_id, node_id, CONTAINER_ID
 
         while True:
             await asyncio.sleep(HEARTBEAT_INTERVAL_SEC)
             message = {
                       "_id": CONTAINER_ID,
                       "heartbeat": int(time.time()* 1000),
-                      "is_busy": is_busy
+                      "is_busy": is_busy,
+                      "container_id":CONTAINER_ID
                   }
             if is_busy:
-                message["graph_id"] = graph_id
+                message["graph_id"] = g_graph_id
                 message["node_id"] = node_id
                 message["function_id"] = function_id
             # print(f"[worker] {CONTAINER_ID} heartbeat",message["heartbeat"])
@@ -268,6 +271,7 @@ async def main_loop() -> None:
     await asyncio.gather(*tasks)
 
 async def goodbye() -> None:
+    global CONTAINER_ID
     print(f'[workers] {CONTAINER_ID} shutting down')
 
     connection =  await connect("amqp://guest:guest@rabbitmq/")

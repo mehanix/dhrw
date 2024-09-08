@@ -2,8 +2,8 @@ import { Meteor } from 'meteor/meteor';
 import { check } from 'meteor/check';
 import { MachinesCollection } from '../db/MachinesCollection';
 import Docker from 'dockerode'
-import {publish, publishh} from "../../server/main";
-import {GraphsCollection} from "../db/GraphsCollection";
+import { publish, publishh } from "../../server/main";
+import { GraphsCollection } from "../db/GraphsCollection";
 
 const docker = new Docker();
 Meteor.methods({
@@ -20,24 +20,48 @@ Meteor.methods({
             "HostConfig": {
                 "NetworkMode": "disi_datahive_net"
             }
-        },{}, function (err, data, container) {
+        }, {}, function (err, data, container) {
             if (err) throw err;
-        })    .on('container', Meteor.bindEnvironment((container) => {
+        }).on('container', Meteor.bindEnvironment((container) => {
             // console.log("[docker] created:", container.id)
         }))
-        .on('stream', (stream) => {
-            stream.on('data', data => {
+            .on('stream', (stream) => {
+                stream.on('data', data => {
+                    if (data.toString().length > 0)
+                        console.log(data.toString())
+
+                });
+            })
+            .on('data', (data) => {
                 if (data.toString().length > 0)
                     console.log(data.toString())
+            })
+            .on('err', (err) => {
+                console.log('err', err);
+            })
+    },
 
-            });
-        })
-        .on('data', (data) => {
-            if (data.toString().length > 0)
-                console.log(data.toString())
-        })
-        .on('err', (err) => {
-            console.log('err', err);
+    'machines.killGraph'(graphId) {
+        console.log("Killing Graph ", graphId)
+        console.log(MachinesCollection.find().count())
+        const query = { graphId: graphId }
+        const affected_machines = MachinesCollection.find({"graphId":graphId}).fetch()
+        console.log("MACHINES:",affected_machines)
+        for (let machine of affected_machines) {
+            Meteor.call('machines.kill', machine.containerId)
+        }
+
+    },
+
+
+    async 'machines.kill'(containerId) {
+        console.log("Killing", containerId)
+        if (!this.userId) {
+            throw new Meteor.Error('Not authorized.');
+        }
+        container = docker.getContainer(containerId)
+        container.stop((err, data) => {
+            console.log("data", err, data)
         })
     },
 
@@ -48,13 +72,13 @@ Meteor.methods({
      * */
     'machines.cleanup'(timestamp) {
         check(timestamp, Number);
-        const query = {heartbeat: {$lt: timestamp}}
+        const query = { heartbeat: { $lt: timestamp } }
         const affected_machines = MachinesCollection.find(query)
         affected_machines.map(machine => {
             // Meteor.call('graph.setNodeStatus', machine.graphId, machine.nodeId, "dead")
             Meteor.call("graph.updateStatus", machine.graphId, "dead")
         }
-    )
+        )
 
         const removed = MachinesCollection.remove(query);
 
@@ -69,22 +93,24 @@ Meteor.methods({
      */
     'machines.heartbeat'(machine) {
         const result = MachinesCollection.upsert(
-            {_id:machine._id},
-            {$set: {
-                heartbeat:machine.heartbeat,
-                is_busy: machine.is_busy ? 1 : 0, // what is going on here..... bug in either mongo or meteor,
-                graphId:machine.graph_id,
-                nodeId:machine.node_id
+            { _id: machine._id },
+            {
+                $set: {
+                    heartbeat: machine.heartbeat,
+                    is_busy: machine.is_busy ? 1 : 0, // what is going on here..... bug in either mongo or meteor,
+                    graphId: machine.graph_id,
+                    nodeId: machine.node_id,
+                    containerId: machine._id,
                 }
-        })
+            })
 
         if ("insertedId" in result) {
-            // console.log("[Meteor] New machine ", machine._id, " showed up in heartbeats. Adding to Mongo")
+            console.log("[Meteor] New machine ", machine._id, " showed up in heartbeats. Adding to Mongo")
         } else {
-            // console.log("[Meteor] Machine ", machine._id," sent heartbeat. Is busy:", machine.is_busy)
+            console.log("[Meteor] Machine ", machine._id, " sent heartbeat. Is busy:", machine.is_busy)
         }
 
-        if(machine.is_busy) {
+        if (machine.is_busy) {
             // console.log("aaa")
 
             // Meteor.call('graph.setNodeStatus', machine.graphId, machine.nodeId, "alive")
@@ -116,7 +142,7 @@ Meteor.methods({
     },
 
     'machines.getAvailableCount'() {
-        const result = MachinesCollection.find({"is_busy":0}).count()
+        const result = MachinesCollection.find({ "is_busy": 0 }).count()
         console.log(result, "machines available")
         return result
     },
@@ -130,9 +156,9 @@ Meteor.methods({
         // if not needed/not used, will be cleaned up.
         // is this a good idea?
 
-        const willAdd = minToAdd +1
+        const willAdd = minToAdd + 1
         console.log("[Meteor] adding ", willAdd, "machines")
-        for (let i=0; i<willAdd; i++) {
+        for (let i = 0; i < willAdd; i++) {
             Meteor.call("machines.create")
         }
 

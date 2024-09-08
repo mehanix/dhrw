@@ -2,6 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import { check } from 'meteor/check';
 import { FunctionsCollection } from '../db/FunctionsCollection';
 import {GraphsCollection} from "../db/GraphsCollection";
+import {publish, publishh} from "../../server/main";
 
 Meteor.methods({
 
@@ -134,7 +135,12 @@ Meteor.methods({
             Meteor.call("graph.updateStatus", graph._id, "online")
 
         }
+    },
+    async 'graph.godown'(graph) {
+        Meteor.call("machines.killGraph", graph._id)
+        Meteor.call("graph.updateStatus", graph._id, "offline")
     }
+
 });
 
 //TODO: on drag n drop functie din repo in graf ia codul si salveaza l in nod!

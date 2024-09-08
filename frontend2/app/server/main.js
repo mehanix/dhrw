@@ -50,10 +50,9 @@ Meteor.startup(() => {
 
   // Listener
   ch1.consume(queue, Meteor.bindEnvironment((msg) => {
-    console.log(msg)
     if (msg !== null) {
       const message_object = JSON.parse(msg.content)
-      console.log(message_object,'\n')
+      ch1.ack(msg);
       switch (msg.fields.routingKey) {
           case "worker_reply.up":
             Meteor.call("machines.heartbeat", message_object)
@@ -66,7 +65,6 @@ Meteor.startup(() => {
           default:
             console.log("ERROR, unknown routing key ", msg.fields.routingKey)
         }
-        ch1.ack(msg);
     } else {
       console.log('Consumer cancelled by server');
     }

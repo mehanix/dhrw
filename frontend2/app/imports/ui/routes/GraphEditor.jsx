@@ -116,7 +116,7 @@ function Flow() {
         }
         const loadedGraph = GraphsCollection.find({_id:activeGraphId}).fetch()[0];
 
-        MachinesCollection.find({}).fetch(); //for debugging TODO remove
+        MachinesCollection.find({"graphId":activeGraphId}).fetch(); //for debugging TODO remove
         return {metadata:loadedGraph, nodes:loadedGraph.data.nodes, edges:loadedGraph.data.edges, viewport:loadedGraph.data.viewport}
     }, [activeGraphId])
 
