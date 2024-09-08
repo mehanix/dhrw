@@ -42,6 +42,6 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get clean
 RUN curl https://install.meteor.com/ | sh
 # run Meteor from the app directory
 WORKDIR /app
-RUN pip install pydantic pandas dill --break-system-packages
+RUN pip install pydantic pandas dill matplotlib --break-system-packages
 
 ENTRYPOINT [ "/usr/local/bin/meteor", "--settings", "settings.json", "--allow-superuser" ]

@@ -3,3 +3,4 @@ pydantic
 pandas
 pymongo
 dill
+matplotlib
