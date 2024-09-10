@@ -1,6 +1,6 @@
 
 
-import { useDisclosure, IconButton, Icon, Card, Heading, CardBody, CardHeader, Divider, CardFooter, ButtonGroup, Spacer, Button, Box, AbsoluteCenter, HStack, Wrap } from "@chakra-ui/react";
+import { useDisclosure, IconButton, Icon, Card, Heading, CardBody, CardHeader, Divider, CardFooter, ButtonGroup, Spacer, Button, Box, AbsoluteCenter, HStack, Wrap, VStack } from "@chakra-ui/react";
 import React from 'react';
 
 import { useTracker } from 'meteor/react-meteor-data';
@@ -50,7 +50,7 @@ const FunctionsList = (props) => {
     return <Box p={2}> No functions exist</Box>
   }
   const functionCards = functions.map((func) => <FunctionCard key={func._id} function={func} />)
-  return functionCards
+  return <Box style={{ overflowY: "scroll", height: "90vh" }} >{functionCards}</Box>
 }
 
 export default function FunctionDrawer() {

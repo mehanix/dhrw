@@ -39,7 +39,7 @@ export default function StartNode({ data }) {
         const examplePromise = new Promise((resolve, reject) => {
             setTimeout(() => resolve(200), 3000)
         })
-
+        
         // Will display the loading toast until the promise is either resolved
         // or rejected.
         toast.promise(examplePromise, {

@@ -76,7 +76,7 @@ Meteor.methods({
         const affected_machines = MachinesCollection.find(query)
         affected_machines.map(machine => {
             // Meteor.call('graph.setNodeStatus', machine.graphId, machine.nodeId, "dead")
-            Meteor.call("graph.updateStatus", machine.graphId, "dead")
+            //Meteor.call("graph.updateStatus", machine.graphId, "dead")
         }
         )
 
