@@ -42,6 +42,24 @@ You can then **upload** CSV files with your data and **receive** the processing 
 
 ![image](https://github.com/user-attachments/assets/a6cbb4f1-dd37-457c-8c7a-de05ee37b6a8)
 
+## 🐳 Get it running 
+
+Setup is a bit tricky since this is a proof-of-concept. Here are the steps to get it running locally:
+
+##### Main setup
+1. Clone repository
+2. `docker compose up`
+3. Manually install python dependencies (found in `worker/requirements.txt` on the meteor container) - known issue, they need to be synchronised 😅
+
+##### RabbitMQ setup
+1. enter localhost:15672 and add workers exchange of type `topic`
+2. also add a routing key named `worker_reply.*` to `server_responses` queue on this exchange. - known issue, they need to be added manually for now.
+
+##### GitHub repo setup
+1. Get an access token for your repository where you will add the functions and add it 
+
+##### Get in the app
+Enter the app via `localhost:3000`.
 
 ## 🤖 Tech stack
 
