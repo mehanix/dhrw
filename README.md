@@ -59,10 +59,15 @@ Setup is a bit tricky since this is a proof-of-concept. Here are the steps to ge
 ##### Get in the app
 Enter the app via `localhost:3000`.
 
+
+
 ## 🤖 Tech stack
 
 ![image](https://github.com/user-attachments/assets/86bec09c-18d3-4248-84e8-bea5fd271525)
 
+## 📜 Docs 
+
+Read the docs [here](https://github.com/mehanix/dhrw/blob/32abfdf1329d02b66804a914cff42167a04d6be6/docs%20(in%20romanian).pdf) (in Romanian, this was my master's thesis project).
 
 # 🎬 Demo video
 
