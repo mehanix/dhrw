@@ -1,20 +1,53 @@
 
-# DHRW ~ Visual Data Pipelines
-🐝 DHRW is a proof-of-concept for a low-code, IaaS platform to let you visually create data processing pipelines. 
+# 🎢 DHRW ~ Visual Data Pipelines
+DHRW is a proof-of-concept for a low-code, IaaS platform to let you visually create data processing pipelines. [See it in action!](https://www.youtube.com/watch?v=6WjEC7rRUQU)
 
-With it, you can:
-- **Write** your Python functions (or use functions written by others and imported in the app)
-- **Add** them to a GitHub repository
-- **Import** them in the app
-- **Connect** them to create _execution graphs_, a sequence of functions that data is piped through. 
+![image](https://github.com/user-attachments/assets/b942acab-afef-4d76-96da-d33efb5b2cb2)
 
-🚀 With just the press of one button, you can **auto-magically turn a series of functions into a network of Docker containers** that are provisioned with your code and wait to receive and process your data.
+## ✅ Features
 
-You can then **upload** CSV files with your data and **receive** the processing results right in your browser.
+#### ⌨️ **Write** your Python functions (or use functions written by others and imported in the app)
+![image](https://github.com/user-attachments/assets/caa09e1f-7a80-49c4-9395-70cc496ada41)
 
-Supports both **text** as well as **image** outputs (for plots).
+#### 🔗 **Add** them to a GitHub repository [(example repo)](https://github.com/mehanix/dhrw-functions)
 
-🌐  Pairs really well with GitHub Codespaces to completely **develop right in the browser**.
+![image](https://github.com/user-attachments/assets/c37eae98-9ce9-40c1-b301-5563c8f4baec)
 
-# Demo video
+#### 📥 **Import** them in the app
 
+![image](https://github.com/user-attachments/assets/3c8c895b-52d3-4753-b34a-f1bc5df9dc9f)
+  
+#### 💫 **Connect** them to create _execution graphs_ - a sequence of functions that you can pipe data through
+
+![image](https://github.com/user-attachments/assets/d409a55e-83ac-481d-99ba-6983098ec79d)
+
+
+#### 🚀 Deploy in the cloud
+With just the press of one button, you can **auto-magically turn a series of functions into a network of Docker containers** that are provisioned with your code and wait to receive and process your data.
+
+![image](https://github.com/user-attachments/assets/c86ea1bc-0042-41be-8ccf-2d043cc2a843)
+
+#### 📑 Process data
+
+You can then **upload** CSV files with your data and **receive** the processing results right in your browser. Supports both **text** as well as **image** outputs (for plots).
+
+![image](https://github.com/user-attachments/assets/22baa3ae-cc8f-4de9-82b3-d6aeb1d655e0)
+
+![image](https://github.com/user-attachments/assets/9d841bc7-bc48-4aa6-8aca-05bd37a80fb7)
+
+
+#### 👨🏻‍💻 Live edit & redeploy
+
+🌐  Pairs really well with GitHub Codespaces to completely **develop right in the browser**. Edit your function code using VSCode in the browser, reupload it in the graph, and redeploy in two clicks. 🙌 
+
+![image](https://github.com/user-attachments/assets/a6cbb4f1-dd37-457c-8c7a-de05ee37b6a8)
+
+
+## 🤖 Tech stack
+
+![image](https://github.com/user-attachments/assets/86bec09c-18d3-4248-84e8-bea5fd271525)
+
+
+# 🎬 Demo video
+
+[![dhrw video](https://img.youtube.com/vi/6WjEC7rRUQU/0.jpg)](https://www.youtube.com/watch?v=6WjEC7rRUQU)
