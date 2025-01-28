@@ -23,7 +23,7 @@ DHRW is a proof-of-concept for a low-code, IaaS platform to let you visually cre
 
 
 #### 🚀 Deploy in the cloud
-With just the press of one button, you can **auto-magically turn a series of functions into a network of Docker containers** that are provisioned with your code and wait to receive and process your data.
+With just the press of one button, you can **auto-magically ✨ turn a series of functions into a network of Docker containers** that are provisioned with your code and wait to receive and process your data.
 
 ![image](https://github.com/user-attachments/assets/c86ea1bc-0042-41be-8ccf-2d043cc2a843)
 
